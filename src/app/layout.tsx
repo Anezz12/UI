@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Overpass } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-
+import WagmiProviderComp from "@/lib/wagmi/wagmi-proved";
+import { headers } from "next/headers";
+import { cookieToInitialState } from "wagmi";
+import { config } from "@/lib/wagmi/config";
 const overpass = Overpass({
   variable: "--font-overpass",
   subsets: ["latin"],
@@ -19,6 +22,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialState = cookieToInitialState(config, headers().get("cookie"));
   return (
     <html lang="en">
       <body
@@ -32,8 +36,12 @@ export default function RootLayout({
           backgroundRepeat: "no-repeat",
         }}
       >
-        <Navbar />
-        <div className="max-w-7xl w-full mx-auto mt-32 px-4">{children}</div>
+        <WagmiProviderComp initialState={initialState}>
+          <Navbar />
+          <main className="max-w-7xl w-full mx-auto mt-32 px-4">
+            {children}
+          </main>
+        </WagmiProviderComp>
       </body>
     </html>
   );
