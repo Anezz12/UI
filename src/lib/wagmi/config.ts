@@ -1,6 +1,13 @@
 import { createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
+import { createWeb3Modal } from "@web3modal/wagmi/react";
+
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
+
+if (!projectId) {
+  throw new Error("NEXT_PUBLIC_PROJECT_ID is not set");
+}
 
 // Define Base Sepolia
 const baseSepolia = {
@@ -25,8 +32,8 @@ export const config = createConfig({
   chains: [mainnet, sepolia, baseSepolia],
   connectors: [
     injected(),
-    walletConnect({ projectId: "your-project-id" }),
-    coinbaseWallet({ appName: "Your App" }),
+    walletConnect({ projectId }), // Gunakan projectId dari env var
+    coinbaseWallet({ appName: "Super Cluster" }),
   ],
   transports: {
     [mainnet.id]: http(),
@@ -35,4 +42,11 @@ export const config = createConfig({
   },
 });
 
-export const projectId = "your-project-id";
+// Setup Web3Modal
+createWeb3Modal({
+  wagmiConfig: config,
+  projectId,
+  enableAnalytics: true,
+});
+
+export { projectId };
