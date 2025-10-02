@@ -1,6 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { WalletIcon, Bars3Icon } from "@heroicons/react/24/outline";
+import {
+  WalletIcon,
+  Bars3Icon,
+  ClipboardDocumentIcon,
+  ArrowTopRightOnSquareIcon,
+  PowerIcon,
+} from "@heroicons/react/24/outline";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount, useDisconnect } from "wagmi";
 import {
@@ -9,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 export interface NavLink {
   name: string;
@@ -48,8 +55,7 @@ export function Navbar({ links }: NavbarProps) {
         {/* Hamburger for mobile */}
         <button
           className="md:hidden p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all duration-300 flex items-center"
-          onClick={() => setMenuOpen((v) => !v)}
-        >
+          onClick={() => setMenuOpen((v) => !v)}>
           <Bars3Icon className="w-6 h-6" />
         </button>
         {/* Nav links */}
@@ -58,8 +64,7 @@ export function Navbar({ links }: NavbarProps) {
             link.dropdown ? (
               <DropdownMenu key={link.name}>
                 <DropdownMenuTrigger
-                  className={`text-md font-medium transition-colors outline-hidden duration-200 px-1 py-0.5 rounded-md text-white  hover:text-white flex items-center gap-1`}
-                >
+                  className={`text-md font-medium transition-colors outline-hidden duration-200 px-1 py-0.5 rounded-md text-white  hover:text-white flex items-center gap-1`}>
                   {link.name}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-900/95 border shadow-lg border-gray-500/10">
@@ -67,8 +72,7 @@ export function Navbar({ links }: NavbarProps) {
                     <DropdownMenuItem key={item.name} asChild>
                       <a
                         href={item.href}
-                        className="block px-2 py-1 text-white/80 hover:bg-gray-600/10 cursor-pointer"
-                      >
+                        className="block px-2 py-1 text-white/80 hover:bg-gray-600/10 cursor-pointer">
                         {item.name}
                       </a>
                     </DropdownMenuItem>
@@ -76,17 +80,16 @@ export function Navbar({ links }: NavbarProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className={`text-md font-medium transition-colors duration-200 px-1 py-0.5 rounded-md ${
                   link.active
                     ? "text-white font-bold"
                     : "text-white hover:text-white"
-                }`}
-              >
+                }`}>
                 {link.name}
-              </a>
+              </Link>
             )
           )}
         </div>
@@ -100,10 +103,32 @@ export function Navbar({ links }: NavbarProps) {
               <span className="hidden sm:inline">{formatAddress(address)}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-gray-900/95 border shadow-lg border-gray-500/10">
+              {/* Copy */}
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(address);
+                }}
+                className="flex items-center gap-2 text-white/80 hover:bg-gray-600/10 cursor-pointer">
+                <ClipboardDocumentIcon className="w-4 h-4" />
+                Copy Address
+              </DropdownMenuItem>
+              {/* Open in Etherscan */}
+              <DropdownMenuItem
+                onClick={() => {
+                  window.open(
+                    `https://etherscan.io/address/${address}`,
+                    "_blank"
+                  );
+                }}
+                className="flex items-center gap-2 text-white/80 hover:bg-gray-600/10 cursor-pointer">
+                <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                Open in Etherscan
+              </DropdownMenuItem>
+              {/* Disconnect */}
               <DropdownMenuItem
                 onClick={() => disconnect()}
-                className="text-white/80 hover:bg-gray-600/10 cursor-pointer"
-              >
+                className="text-white/80 hover:bg-gray-600/10 cursor-pointer">
+                <PowerIcon className="w-4 h-4" />
                 Disconnect
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -131,8 +156,7 @@ export function Navbar({ links }: NavbarProps) {
             link.dropdown ? (
               <DropdownMenu key={link.name}>
                 <DropdownMenuTrigger
-                  className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md text-white/80 hover:text-white flex items-center gap-1`}
-                >
+                  className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md text-white/80 hover:text-white flex items-center gap-1`}>
                   {link.name}
                   <span className="text-xs">▼</span>
                 </DropdownMenuTrigger>
@@ -141,8 +165,7 @@ export function Navbar({ links }: NavbarProps) {
                     <DropdownMenuItem key={item.name} asChild>
                       <a
                         href={item.href}
-                        className="block px-2 py-1 text-white/80 hover:text-white"
-                      >
+                        className="block px-2 py-1 text-white/80 hover:text-white">
                         {item.name}
                       </a>
                     </DropdownMenuItem>
@@ -150,17 +173,16 @@ export function Navbar({ links }: NavbarProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md ${
                   link.active
                     ? "text-white font-bold"
                     : "text-white/80 hover:text-white"
-                }`}
-              >
+                }`}>
                 {link.name}
-              </a>
+              </Link>
             )
           )}
         </div>
