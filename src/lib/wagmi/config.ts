@@ -32,7 +32,7 @@ export const config = createConfig({
   chains: [mainnet, sepolia, baseSepolia],
   connectors: [
     injected(),
-    walletConnect({ projectId }), // Gunakan projectId dari env var
+    walletConnect({ projectId }),
     coinbaseWallet({ appName: "Super Cluster" }),
   ],
   transports: {
