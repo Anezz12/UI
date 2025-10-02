@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import { WalletIcon, Bars3Icon } from "@heroicons/react/24/outline";
+import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { useAccount, useDisconnect } from "wagmi";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -21,6 +23,14 @@ interface NavbarProps {
 
 export function Navbar({ links }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { open } = useWeb3Modal();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-500/15 backdrop-blur-lg shadow-sm z-50">
       <div className="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between">
@@ -72,12 +82,31 @@ export function Navbar({ links }: NavbarProps) {
         {/* Spacer for desktop */}
         <div className="flex-1 hidden md:block" />
         {/* Connect Wallet button */}
-        <div className="flex items-center">
-          <button className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
-            <WalletIcon className="w-4 h-4 text-white" />
-            <span className="hidden sm:inline">Connect Wallet</span>
+        {isConnected && address ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
+              <WalletIcon className="w-4 h-4 text-white" />
+              <span className="hidden sm:inline">{formatAddress(address)}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900/95 border shadow-lg border-gray-500/10">
+              <DropdownMenuItem
+                onClick={() => disconnect()}
+                className="text-white/80 hover:bg-gray-600/10 cursor-pointer"
+              >
+                Disconnect
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button onClick={() => open()}>
+            <div className="flex items-center">
+              <button className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
+                <WalletIcon className="w-4 h-4 text-white" />
+                <span className="hidden sm:inline">Connect Wallet</span>
+              </button>
+            </div>
           </button>
-        </div>
+        )}
       </div>
       {/* Mobile menu */}
       {menuOpen && (
