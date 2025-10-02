@@ -24,11 +24,22 @@ interface NavbarProps {
 export function Navbar({ links }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { open } = useWeb3Modal();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, isConnecting } = useAccount();
   const { disconnect } = useDisconnect();
+  const [error, setError] = useState<string | null>(null);
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const handleConnect = async () => {
+    try {
+      setError(null);
+      await open();
+    } catch (error) {
+      setError("Failed to connect wallet. Please try again.");
+      console.error("Wallet connection error:", error);
+    }
   };
 
   return (
@@ -98,14 +109,19 @@ export function Navbar({ links }: NavbarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <button onClick={() => open()}>
-            <div className="flex items-center">
-              <button className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
-                <WalletIcon className="w-4 h-4 text-white" />
-                <span className="hidden sm:inline">Connect Wallet</span>
-              </button>
-            </div>
-          </button>
+          <div className="flex flex-col items-end">
+            <button onClick={handleConnect} disabled={isConnecting}>
+              <div className="flex items-center">
+                <div className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
+                  <WalletIcon className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline">
+                    {isConnecting ? "Connecting..." : "Connect Wallet"}
+                  </span>
+                </div>
+              </div>
+            </button>
+            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+          </div>
         )}
       </div>
       {/* Mobile menu */}

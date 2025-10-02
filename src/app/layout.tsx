@@ -17,12 +17,13 @@ export const metadata: Metadata = {
   description: "Bridge your PT to supported chains with Super Cluster",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialState = cookieToInitialState(config, headers().get("cookie"));
+  const headersList = await headers();
+  const initialState = cookieToInitialState(config, headersList.get("cookie"));
   return (
     <html lang="en">
       <body
