@@ -1,6 +1,14 @@
 "use client";
-import React, { useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface FiltersBarProps {
   selectedCategory: string;
@@ -26,8 +34,6 @@ export function FiltersBar({
   setSearchQuery,
   setShowFilters,
 }: FiltersBarProps) {
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-
   const handleClearFilters = () => {
     setSelectedCategory("All Categories");
     setSearchQuery("");
@@ -35,48 +41,42 @@ export function FiltersBar({
   };
 
   return (
-    <div className="border-b border-gray-800 px-6 py-4">
+    <div className=" border-gray-800 pb-6 pt-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <button
-              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-              className="px-4 py-2 rounded-lg bg-[#1a1b26] text-gray-300 hover:bg-[#252633] transition-colors flex items-center gap-2">
-              {selectedCategory}
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {showCategoryDropdown && (
-              <div className="absolute top-full mt-1 left-0 bg-[#1a1b26] border border-gray-700 rounded-lg shadow-lg z-10 min-w-[160px]">
-                {CATEGORIES.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setShowCategoryDropdown(false);
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-[#252633] transition-colors text-gray-300 first:rounded-t-lg last:rounded-b-lg">
-                    {category}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[180px] bg-[#1a1b26] border-gray-700 text-gray-300 hover:bg-[#252633] focus:ring-blue-500">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1b26] border-gray-700">
+              {CATEGORIES.map((category) => (
+                <SelectItem
+                  key={category}
+                  value={category}
+                  className="text-gray-300 focus:bg-[#252633] focus:text-blue-500">
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="ghost"
             onClick={handleClearFilters}
-            className="text-blue-400 hover:text-blue-300 transition-colors text-sm">
+            className="text-blue-400 hover:text-blue-300 hover:bg-transparent text-sm px-0">
             Clear Filters
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Input
               type="text"
               placeholder="Search name or paste address"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-[#1a1b26] rounded-lg text-sm w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-10 pr-4 py-2 bg-[#1a1b26] border-gray-700 text-gray-300 placeholder:text-gray-500 rounded-lg text-sm w-80 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 "
             />
           </div>
         </div>
