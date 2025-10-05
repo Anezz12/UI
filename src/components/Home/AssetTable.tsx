@@ -97,9 +97,9 @@ export function AssetTable({
 
   return (
     <>
-      <div className="space-y-2">
-        {/* Table Header */}
-        <div className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-800/50 rounded-t-xl px-6 py-3 gap-4 border-b border-gray-700/50">
+      <div className="space-y-2 md:px-0">
+        {/* Desktop Table Header */}
+        <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-800/50 rounded-t-xl px-6 py-3 gap-4 border-b border-gray-700/50">
           {/* Name Column */}
           <div
             className="group cursor-pointer flex items-center text-gray-400 hover:text-gray-200 transition-colors"
@@ -175,8 +175,8 @@ export function AssetTable({
 
           return (
             <div key={asset.id} className="space-y-2">
-              {/* Main Row */}
-              <div className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-500/15 hover:bg-gray-500/20 rounded-md px-6 py-3 gap-4 shadow transition-colors">
+              {/* Desktop Row */}
+              <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-500/15 hover:bg-gray-500/20 rounded-md px-6 py-3 gap-4 shadow transition-colors">
                 {/* Icon & Name */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -255,17 +255,113 @@ export function AssetTable({
                 </div>
               </div>
 
-              {/* Expanded Markets */}
+              {/* Mobile Card */}
+              <div className="md:hidden bg-gray-500/15 rounded-lg p-4 shadow">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <Image
+                        src={asset.logo}
+                        alt={asset.name}
+                        className="w-7 h-7"
+                        height={28}
+                        width={28}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-white text-base">
+                          {asset.name}
+                        </span>
+                        <span className="text-white/60 text-sm">
+                          {asset.symbol}
+                        </span>
+                      </div>
+                      <span className="bg-purple-900/60 text-purple-400 px-2 py-0.5 rounded text-xs inline-block w-fit">
+                        {asset.chain}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => openModal(asset)}
+                    className="hover:bg-white/10 p-2 rounded-lg transition-colors flex-shrink-0">
+                    <ExternalLink className="h-4 w-4 text-white/60" />
+                  </button>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-gray-800/30 rounded-lg p-2.5">
+                    <p className="text-gray-400 text-xs mb-1">TVL</p>
+                    <p className="text-blue-500 text-sm font-medium">
+                      {asset.tvl}
+                    </p>
+                    <p className="text-white/60 text-xs mt-0.5">
+                      {asset.volume24h}
+                    </p>
+                  </div>
+                  <div className="bg-gray-800/30 rounded-lg p-2.5">
+                    <p className="text-gray-400 text-xs mb-1">Markets</p>
+                    <p className="text-blue-400 text-sm font-medium">
+                      {asset.marketsCount || asset.pools}
+                    </p>
+                  </div>
+                  <div className="bg-gray-800/30 rounded-lg p-2.5">
+                    <p className="text-gray-400 text-xs mb-1">Long APY (YT)</p>
+                    <p className="text-blue-500 text-sm font-medium">
+                      {asset.bestLongYieldAPY}%
+                    </p>
+                  </div>
+                  <div className="bg-gray-800/30 rounded-lg p-2.5">
+                    <p className="text-gray-400 text-xs mb-1">Fixed APY (PT)</p>
+                    <p className="text-blue-500 text-sm font-medium">
+                      {asset.bestFixedAPY}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Expand Button */}
+                {asset.markets && asset.markets.length > 0 && (
+                  <button
+                    onClick={() => toggleAssetExpansion(asset.id)}
+                    className="w-full bg-gray-800/40 hover:bg-gray-800/60 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-white/80 text-sm">
+                    {isExpanded ? "Hide Markets" : "Show Markets"}
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Expanded Markets - Works for both Desktop and Mobile */}
               {isExpanded && asset.markets && asset.markets.length > 0 && (
-                <div className="ml-16 space-y-1">
+                <div className="md:ml-16 space-y-1">
                   {asset.markets.map((market) => (
                     <div
                       key={market.id}
-                      className="bg-gray-500/10 hover:bg-gray-500/15 rounded-md px-6 py-2 text-sm text-white/80 flex justify-between items-center transition-colors">
-                      <span>{market.name}</span>
-                      <div className="flex gap-4">
-                        <span className="text-blue-400">{market.tvl}</span>
-                        <span className="text-green-400">{market.apy}</span>
+                      className="bg-gray-500/10 hover:bg-gray-500/15 rounded-md px-4 md:px-6 py-2 md:py-2 text-sm text-white/80 transition-colors">
+                      {/* Desktop Layout */}
+                      <div className="hidden md:flex justify-between items-center">
+                        <span>{market.name}</span>
+                        <div className="flex gap-4">
+                          <span className="text-blue-400">{market.tvl}</span>
+                          <span className="text-green-400">{market.apy}</span>
+                        </div>
+                      </div>
+                      {/* Mobile Layout */}
+                      <div className="md:hidden">
+                        <p className="font-medium mb-1">{market.name}</p>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-blue-400">
+                            TVL: {market.tvl}
+                          </span>
+                          <span className="text-green-400">
+                            APY: {market.apy}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -303,7 +399,7 @@ export function AssetTable({
             </div>
 
             {/* Asset Details */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-gray-500/15 rounded-lg p-4">
                 <p className="text-white/60 text-sm">Liquidity Total TVL</p>
                 <p className="text-white text-xl font-bold">
@@ -343,7 +439,7 @@ export function AssetTable({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button className="flex-1 bg-blue-900 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors">
                 Trade
               </button>

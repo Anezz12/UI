@@ -58,23 +58,26 @@ export function Navbar({ links }: NavbarProps) {
           onClick={() => setMenuOpen((v) => !v)}>
           <Bars3Icon className="w-6 h-6" />
         </button>
+
         {/* Nav links */}
         <div className="hidden md:flex gap-6 items-center flex-1">
           {links.map((link) =>
             link.dropdown ? (
               <DropdownMenu key={link.name}>
                 <DropdownMenuTrigger
-                  className={`text-md font-medium transition-colors outline-hidden duration-200 px-1 py-0.5 rounded-md text-white  hover:text-white flex items-center gap-1`}>
+                  className={`text-md font-medium transition-colors outline-hidden duration-200 px-1 py-0.5 rounded-md hover:text-white flex items-center gap-1 ${
+                    link.active ? "font-bold text-white" : "text-white/80"
+                  }`}>
                   {link.name}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-900/95 border shadow-lg border-gray-500/10">
                   {link.dropdown.items.map((item) => (
                     <DropdownMenuItem key={item.name} asChild>
-                      <a
+                      <Link
                         href={item.href}
                         className="block px-2 py-1 text-white/80 hover:bg-gray-600/10 cursor-pointer">
                         {item.name}
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -85,16 +88,18 @@ export function Navbar({ links }: NavbarProps) {
                 href={link.href}
                 className={`text-md font-medium transition-colors duration-200 px-1 py-0.5 rounded-md ${
                   link.active
-                    ? "text-white font-bold"
-                    : "text-white hover:text-white"
+                    ? "font-bold text-white"
+                    : "text-white/80 hover:text-white"
                 }`}>
                 {link.name}
               </Link>
             )
           )}
         </div>
+
         {/* Spacer for desktop */}
         <div className="flex-1 hidden md:block" />
+
         {/* Connect Wallet button */}
         {isConnected && address ? (
           <DropdownMenu>
@@ -127,7 +132,7 @@ export function Navbar({ links }: NavbarProps) {
               {/* Disconnect */}
               <DropdownMenuItem
                 onClick={() => disconnect()}
-                className="text-white/80 hover:bg-gray-600/10 cursor-pointer">
+                className="flex items-center gap-2 text-white/80 hover:bg-gray-600/10 cursor-pointer">
                 <PowerIcon className="w-4 h-4" />
                 Disconnect
               </DropdownMenuItem>
@@ -149,6 +154,7 @@ export function Navbar({ links }: NavbarProps) {
           </div>
         )}
       </div>
+
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden bg-gray-900/90 px-4 py-2 absolute top-full left-0 w-full z-50 flex flex-col gap-2">
@@ -156,18 +162,20 @@ export function Navbar({ links }: NavbarProps) {
             link.dropdown ? (
               <DropdownMenu key={link.name}>
                 <DropdownMenuTrigger
-                  className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md text-white/80 hover:text-white flex items-center gap-1`}>
+                  className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md hover:text-white flex items-center gap-1 ${
+                    link.active ? "font-bold text-white" : "text-white/80"
+                  }`}>
                   {link.name}
                   <span className="text-xs">▼</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-900/90 border border-white/10">
                   {link.dropdown.items.map((item) => (
                     <DropdownMenuItem key={item.name} asChild>
-                      <a
+                      <Link
                         href={item.href}
                         className="block px-2 py-1 text-white/80 hover:text-white">
                         {item.name}
-                      </a>
+                      </Link>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -178,7 +186,7 @@ export function Navbar({ links }: NavbarProps) {
                 href={link.href}
                 className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md ${
                   link.active
-                    ? "text-white font-bold"
+                    ? "font-bold text-white"
                     : "text-white/80 hover:text-white"
                 }`}>
                 {link.name}
