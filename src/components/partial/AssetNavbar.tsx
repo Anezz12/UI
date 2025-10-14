@@ -1,11 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   WalletIcon,
   Bars3Icon,
+  XMarkIcon,
   ClipboardDocumentIcon,
   ArrowTopRightOnSquareIcon,
   PowerIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount, useDisconnect } from "wagmi";
@@ -16,6 +18,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface NavLink {
   name: string;
@@ -30,10 +33,19 @@ interface NavbarProps {
 
 export function Navbar({ links }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
   const { disconnect } = useDisconnect();
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -50,151 +62,272 @@ export function Navbar({ links }: NavbarProps) {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-gray-500/15 backdrop-blur-lg shadow-sm z-50">
-      <div className="max-w-7xl mx-auto px-4 h-18 flex items-center justify-between">
-        {/* Hamburger for mobile */}
-        <button
-          className="md:hidden p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all duration-300 flex items-center"
-          onClick={() => setMenuOpen((v) => !v)}>
-          <Bars3Icon className="w-6 h-6" />
-        </button>
+    <>
+      <nav
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-slate-900/80 backdrop-blur-md border-b border-slate-800"
+            : "bg-transparent"
+        }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/50 transition-all">
+                <span className="text-white font-bold text-lg">S</span>
+              </div>
+              <span className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:block">
+                SuperCluster
+              </span>
+            </Link>
 
-        {/* Nav links */}
-        <div className="hidden md:flex gap-6 items-center flex-1">
-          {links.map((link) =>
-            link.dropdown ? (
-              <DropdownMenu key={link.name}>
-                <DropdownMenuTrigger
-                  className={`text-md font-medium transition-colors outline-hidden duration-200 px-1 py-0.5 rounded-md hover:text-white flex items-center gap-1 ${
-                    link.active ? "font-bold text-white" : "text-white/80"
-                  }`}>
-                  {link.name}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-gray-900/95 border shadow-lg border-gray-500/10">
-                  {link.dropdown.items.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild>
-                      <Link
-                        href={item.href}
-                        className="block px-2 py-1 text-white/80 hover:bg-gray-600/10 cursor-pointer">
-                        {item.name}
-                      </Link>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6">
+              {links.map((link) =>
+                link.dropdown ? (
+                  <DropdownMenu key={link.name}>
+                    <DropdownMenuTrigger
+                      className={`relative px-1 py-2 text-sm font-medium transition-colors outline-none group ${
+                        link.active
+                          ? "text-white"
+                          : "text-slate-400 hover:text-white"
+                      }`}>
+                      <span className="flex items-center gap-1">
+                        {link.name}
+                        <ChevronDownIcon className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-200" />
+                      </span>
+                      {link.active && (
+                        <motion.div
+                          layoutId="navbar-indicator"
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
+                          transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.6,
+                          }}
+                        />
+                      )}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-slate-900/95 backdrop-blur-md border border-slate-800 shadow-xl rounded-xl mt-2 min-w-[160px]">
+                      {link.dropdown.items.map((item) => (
+                        <DropdownMenuItem key={item.name} asChild>
+                          <Link
+                            href={item.href}
+                            className="px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg">
+                            {item.name}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`relative px-1 py-2 text-sm font-medium transition-colors ${
+                      link.active
+                        ? "text-white"
+                        : "text-slate-400 hover:text-white"
+                    }`}>
+                    {link.name}
+                    {link.active && (
+                      <motion.div
+                        layoutId="navbar-indicator"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                      />
+                    )}
+                  </Link>
+                )
+              )}
+            </div>
+
+            {/* Right Section */}
+            <div className="flex items-center gap-3">
+              {/* Connect Wallet - Desktop */}
+              {isConnected && address ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 outline-none">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span>{formatAddress(address)}</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-slate-900/95 backdrop-blur-md border border-slate-800 shadow-xl rounded-xl mt-2 min-w-[220px]">
+                    <div className="px-3 py-2.5 border-b border-slate-800">
+                      <p className="text-xs text-slate-400">Wallet Address</p>
+                      <p className="text-sm text-white font-mono mt-1">
+                        {formatAddress(address)}
+                      </p>
+                    </div>
+                    <DropdownMenuItem
+                      onClick={() => navigator.clipboard.writeText(address)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg m-1">
+                      <ClipboardDocumentIcon className="w-4 h-4" />
+                      Copy Address
                     </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-md font-medium transition-colors duration-200 px-1 py-0.5 rounded-md ${
-                  link.active
-                    ? "font-bold text-white"
-                    : "text-white/80 hover:text-white"
-                }`}>
-                {link.name}
-              </Link>
-            )
-          )}
+                    <DropdownMenuItem
+                      onClick={() =>
+                        window.open(
+                          `https://etherscan.io/address/${address}`,
+                          "_blank"
+                        )
+                      }
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg m-1">
+                      <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                      View Explorer
+                    </DropdownMenuItem>
+                    <div className="border-t border-slate-800 mt-1 pt-1">
+                      <DropdownMenuItem
+                        onClick={() => disconnect()}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer transition-colors rounded-lg m-1">
+                        <PowerIcon className="w-4 h-4" />
+                        Disconnect
+                      </DropdownMenuItem>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <button
+                  onClick={handleConnect}
+                  disabled={isConnecting}
+                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <WalletIcon className="w-4 h-4" />
+                  {isConnecting ? "Connecting..." : "Connect"}
+                </button>
+              )}
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="md:hidden p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-white transition-colors border border-slate-700">
+                {menuOpen ? (
+                  <XMarkIcon className="w-5 h-5" />
+                ) : (
+                  <Bars3Icon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Spacer for desktop */}
-        <div className="flex-1 hidden md:block" />
-
-        {/* Connect Wallet button */}
-        {isConnected && address ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
-              <WalletIcon className="w-4 h-4 text-white" />
-              <span className="hidden sm:inline">{formatAddress(address)}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-gray-900/95 border shadow-lg border-gray-500/10">
-              {/* Copy */}
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(address);
-                }}
-                className="flex items-center gap-2 text-white/80 hover:bg-gray-600/10 cursor-pointer">
-                <ClipboardDocumentIcon className="w-4 h-4" />
-                Copy Address
-              </DropdownMenuItem>
-              {/* Open in Etherscan */}
-              <DropdownMenuItem
-                onClick={() => {
-                  window.open(
-                    `https://etherscan.io/address/${address}`,
-                    "_blank"
-                  );
-                }}
-                className="flex items-center gap-2 text-white/80 hover:bg-gray-600/10 cursor-pointer">
-                <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                Open in Etherscan
-              </DropdownMenuItem>
-              {/* Disconnect */}
-              <DropdownMenuItem
-                onClick={() => disconnect()}
-                className="flex items-center gap-2 text-white/80 hover:bg-gray-600/10 cursor-pointer">
-                <PowerIcon className="w-4 h-4" />
-                Disconnect
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <div className="flex flex-col items-end">
-            <button onClick={handleConnect} disabled={isConnecting}>
-              <div className="flex items-center">
-                <div className="px-4 py-2 rounded-full bg-gray-500/10 cursor-pointer text-white font-semibold text-sm hover:bg-white/20 transition-all duration-300 flex items-center gap-2">
-                  <WalletIcon className="w-4 h-4 text-white" />
-                  <span className="hidden sm:inline">
-                    {isConnecting ? "Connecting..." : "Connect Wallet"}
-                  </span>
-                </div>
-              </div>
-            </button>
-            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/10 border-t border-red-500/50 px-4 py-2">
+            <p className="text-red-400 text-sm text-center">{error}</p>
           </div>
         )}
-      </div>
+      </nav>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-gray-900/90 px-4 py-2 absolute top-full left-0 w-full z-50 flex flex-col gap-2">
-          {links.map((link) =>
-            link.dropdown ? (
-              <DropdownMenu key={link.name}>
-                <DropdownMenuTrigger
-                  className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md hover:text-white flex items-center gap-1 ${
-                    link.active ? "font-bold text-white" : "text-white/80"
-                  }`}>
-                  {link.name}
-                  <span className="text-xs">▼</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-gray-900/90 border border-white/10">
-                  {link.dropdown.items.map((item) => (
-                    <DropdownMenuItem key={item.name} asChild>
-                      <Link
-                        href={item.href}
-                        className="block px-2 py-1 text-white/80 hover:text-white">
-                        {item.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-md font-medium transition-colors duration-200 px-2 py-2 rounded-md ${
-                  link.active
-                    ? "font-bold text-white"
-                    : "text-white/80 hover:text-white"
-                }`}>
-                {link.name}
-              </Link>
-            )
-          )}
-        </div>
-      )}
-    </nav>
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-16 left-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl z-40 md:hidden">
+            <div className="px-4 py-4 space-y-1">
+              {/* Mobile Navigation Links */}
+              {links.map((link) =>
+                link.dropdown ? (
+                  <div key={link.name} className="space-y-1">
+                    <div
+                      className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                        link.active
+                          ? "text-white bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
+                          : "text-slate-400"
+                      }`}>
+                      {link.name}
+                    </div>
+                    <div className="pl-4 space-y-1">
+                      {link.dropdown.items.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          onClick={() => setMenuOpen(false)}
+                          className="block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`block px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      link.active
+                        ? "text-white bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                    }`}>
+                    {link.name}
+                  </Link>
+                )
+              )}
+
+              {/* Mobile Connect Wallet */}
+              <div className="pt-3 mt-3 border-t border-slate-800">
+                {isConnected && address ? (
+                  <div className="space-y-2">
+                    <div className="px-3 py-2.5 bg-slate-800/50 border border-slate-700 rounded-lg">
+                      <p className="text-xs text-slate-400">Connected</p>
+                      <p className="text-sm text-white font-mono mt-1">
+                        {formatAddress(address)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(address);
+                        setMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
+                      <ClipboardDocumentIcon className="w-4 h-4" />
+                      Copy Address
+                    </button>
+                    <button
+                      onClick={() => {
+                        window.open(
+                          `https://etherscan.io/address/${address}`,
+                          "_blank"
+                        );
+                        setMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
+                      <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                      View Explorer
+                    </button>
+                    <button
+                      onClick={() => {
+                        disconnect();
+                        setMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors">
+                      <PowerIcon className="w-4 h-4" />
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleConnect();
+                      setMenuOpen(false);
+                    }}
+                    disabled={isConnecting}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25">
+                    <WalletIcon className="w-4 h-4" />
+                    {isConnecting ? "Connecting..." : "Connect Wallet"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

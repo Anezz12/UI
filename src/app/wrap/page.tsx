@@ -1,0 +1,290 @@
+"use client";
+import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { ArrowRightLeft, Info, Zap, Shield, TrendingUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+export default function LidoWrapUnwrap() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [amount, setAmount] = useState("");
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  const activeTab = pathname === "/wrap/unwrap" ? "unwrap" : "wrap";
+
+  const handleTabChange = (tab: string) => {
+    if (tab === "wrap") {
+      router.push("/wrap");
+    } else {
+      router.push("/wrap/unwrap");
+    }
+  };
+
+  const handleMaxClick = () => {
+    setAmount("0.0");
+  };
+
+  const faqItems = [
+    {
+      question: "What are the risks of engaging with the Lido protocol?",
+      answer:
+        "The Lido protocol carries smart contract risk, slashing risk, and other DeFi-related risks. Our protocol has been audited by multiple security firms, and we maintain insurance coverage to mitigate these risks.",
+      icon: Shield,
+    },
+    {
+      question: "What is wstETH?",
+      answer:
+        "wstETH is a wrapped version of stETH that maintains a fixed balance and uses an internal share system. It's designed to be compatible with DeFi protocols that don't support rebasing tokens.",
+      icon: Info,
+    },
+    {
+      question: "How can I get wstETH?",
+      answer:
+        "You can get wstETH by wrapping your stETH tokens through this interface. The process is simple and only requires one transaction.",
+      icon: Zap,
+    },
+    {
+      question: "How can I use wstETH?",
+      answer:
+        "wstETH can be used across various DeFi protocols and platforms including lending markets, liquidity pools, and yield farming strategies. It maintains the same value as stETH but with a fixed balance.",
+      icon: TrendingUp,
+    },
+  ];
+
+  const wrapDetails = {
+    youWillReceive: amount ? `${parseFloat(amount) * 0.922}` : "0.0",
+    maxUnlockCost: "$0.25",
+    maxTransactionCost: "$0.59",
+    exchangeRate: "1 stETH = 0.9220 wstETH",
+    allowance: "-",
+  };
+
+  const unwrapDetails = {
+    youWillReceive: amount ? `${parseFloat(amount) * 1.2164}` : "0.0",
+    maxTransactionCost: "$0.56",
+    exchangeRate: "1 wstETH = 1.2164 stETH",
+  };
+
+  return (
+    <div className="min-h-screen  text-white">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6">
+            <ArrowRightLeft className="w-4 h-4 text-blue-400" />
+            <span className="text-sm text-blue-400 font-medium">
+              Token Wrapper
+            </span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
+              Convert Your Tokens
+            </span>
+          </h1>
+          <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+            Seamlessly wrap and unwrap stETH for enhanced DeFi compatibility
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Conversion Panel */}
+          <div className="lg:col-span-2">
+            {/* Tab Selector */}
+            <div className="relative mb-6">
+              <div className="flex gap-2 p-1.5 bg-slate-900/50 border border-slate-800 rounded-2xl backdrop-blur-sm">
+                <button
+                  onClick={() => handleTabChange("wrap")}
+                  className={`flex-1 relative py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                    activeTab === "wrap"
+                      ? "text-white"
+                      : "text-slate-400 hover:text-white"
+                  }`}>
+                  {activeTab === "wrap" && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl"></div>
+                  )}
+                  <span className="relative z-10">Wrap stETH</span>
+                </button>
+                <button
+                  onClick={() => handleTabChange("unwrap")}
+                  className={`flex-1 relative py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
+                    activeTab === "unwrap"
+                      ? "text-white"
+                      : "text-slate-400 hover:text-white"
+                  }`}>
+                  {activeTab === "unwrap" && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl"></div>
+                  )}
+                  <span className="relative z-10">Unwrap wstETH</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Conversion Card */}
+            <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm">
+              {/* From Section */}
+              <div className="mb-6">
+                <label className="text-sm text-slate-400 mb-2 block">
+                  You send
+                </label>
+                <div className="relative">
+                  <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-lg">
+                        {activeTab === "wrap" ? "st" : "w"}
+                      </div>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600"
+                      />
+                    </div>
+                    <button
+                      onClick={handleMaxClick}
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors">
+                      MAX
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Swap Arrow */}
+              <div className="flex justify-center -my-2 relative z-10">
+                <div className="w-10 h-10 bg-slate-800 border-2 border-slate-700 rounded-full flex items-center justify-center">
+                  <ArrowRightLeft className="w-5 h-5 text-blue-400" />
+                </div>
+              </div>
+
+              {/* To Section */}
+              <div className="mb-8">
+                <label className="text-sm text-slate-400 mb-2 block">
+                  You receive
+                </label>
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-lg">
+                      {activeTab === "wrap" ? "w" : "st"}
+                    </div>
+                    <div className="text-3xl font-semibold text-white">
+                      {activeTab === "wrap"
+                        ? wrapDetails.youWillReceive
+                        : unwrapDetails.youWillReceive}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Connect Button */}
+              <Button className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
+                Connect Wallet
+              </Button>
+
+              {/* Transaction Info */}
+              <div className="mt-6 space-y-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Exchange Rate</span>
+                  <span className="text-white font-medium">
+                    {activeTab === "wrap"
+                      ? wrapDetails.exchangeRate
+                      : unwrapDetails.exchangeRate}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-400">Network Fee</span>
+                  <span className="text-white font-medium">
+                    {activeTab === "wrap"
+                      ? wrapDetails.maxTransactionCost
+                      : unwrapDetails.maxTransactionCost}
+                  </span>
+                </div>
+                {activeTab === "wrap" && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Unlock Cost</span>
+                      <span className="text-white font-medium">
+                        {wrapDetails.maxUnlockCost}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        Allowance
+                        <Info className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="text-white font-medium">
+                        {wrapDetails.allowance}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Info Banner */}
+            <div className="mt-6 p-5 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-2xl">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Info className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-1">
+                    {activeTab === "wrap" ? "Why Wrap?" : "Why Unwrap?"}
+                  </h3>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    {activeTab === "wrap"
+                      ? "Wrapped stETH (wstETH) maintains a fixed balance and is compatible with DeFi protocols that don't support rebasing tokens. Perfect for lending, borrowing, and liquidity provision."
+                      : "Unwrapping wstETH back to stETH allows you to receive the rebasing rewards directly in your wallet. Your balance will automatically increase as staking rewards are earned."}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* FAQ Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <h3 className="text-2xl font-bold mb-6 text-white">
+                Common Questions
+              </h3>
+              <div className="space-y-3">
+                {faqItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const isExpanded = expandedFaq === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
+                      <button
+                        onClick={() =>
+                          setExpandedFaq(isExpanded ? null : index)
+                        }
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
+                        <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Icon className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-white text-sm leading-snug">
+                            {item.question}
+                          </h4>
+                        </div>
+                      </button>
+                      {isExpanded && (
+                        <div className="px-5 pb-5">
+                          <p className="text-sm text-slate-400 leading-relaxed pl-11">
+                            {item.answer}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

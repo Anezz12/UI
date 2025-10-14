@@ -22,6 +22,21 @@ export default function NavbarWrapper() {
       active: pathname.startsWith("/dashboard"),
     },
     {
+      name: "Stake",
+      href: "/stake",
+      active: pathname === "/stake",
+    },
+    {
+      name: "Wrap",
+      href: "/wrap",
+      active: pathname.startsWith("/wrap"),
+    },
+    {
+      name: "Withdrawals",
+      href: "/withdrawals/request",
+      active: pathname.startsWith("/withdrawals"),
+    },
+    {
       name: "Docs",
       href: "#",
       active: pathname.startsWith("/docs"),
