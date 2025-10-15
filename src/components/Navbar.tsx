@@ -17,11 +17,6 @@ export default function NavbarWrapper() {
       active: pathname === "/markets" || pathname === "/",
     },
     {
-      name: "Dashboard",
-      href: "/dashboard/user",
-      active: pathname.startsWith("/dashboard"),
-    },
-    {
       name: "Stake",
       href: "/stake",
       active: pathname === "/stake",

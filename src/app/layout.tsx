@@ -27,7 +27,7 @@ export default async function RootLayout({
   const initialState = cookieToInitialState(config, headersList.get("cookie"));
 
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body
         className={`${overpass.variable} antialiased bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 min-h-screen`}>
         <WagmiProviderComp initialState={initialState}>

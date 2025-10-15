@@ -8,16 +8,50 @@ import {
   Zap,
   Award,
   Sparkles,
+  Wallet,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { useAccount, useBalance } from "wagmi";
 
 export default function StakePage() {
   const [ethAmount, setEthAmount] = useState("");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const { open } = useWeb3Modal();
+  const { address, isConnected, isConnecting } = useAccount();
+
+  const { data: ethBalance } = useBalance({
+    address: address,
+  });
+
+  console.log("Address:", address);
+  console.log("Balance:", ethBalance);
+
+  // TODO: Get stETH balance from contract
+  const stETHBalance = "0.0";
 
   const handleMaxClick = () => {
-    setEthAmount("0.0");
+    if (ethBalance) {
+      setEthAmount(ethBalance.formatted);
+    }
+  };
+
+  const handleCopyAddress = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
   const stats = {
@@ -25,6 +59,31 @@ export default function StakePage() {
     totalStaked: "8,691,541.703 ETH",
     stakers: "569,385",
     marketCap: "$35,031,698,430",
+  };
+
+  const handleConnect = async () => {
+    try {
+      setError(null);
+      await open();
+    } catch (error) {
+      setError("Failed to connect wallet. Please try again.");
+      console.error("Wallet connection error:", error);
+    }
+  };
+
+  const handleStake = async () => {
+    if (!ethAmount || parseFloat(ethAmount) <= 0) {
+      setError("Please enter a valid amount");
+      return;
+    }
+
+    try {
+      setError(null);
+      console.log("Staking", ethAmount, "ETH");
+    } catch (error) {
+      setError("Failed to stake. Please try again.");
+      console.error("Stake error:", error);
+    }
   };
 
   const faqItems = [
@@ -127,20 +186,100 @@ export default function StakePage() {
                       </div>
                       <Input
                         type="number"
-                        placeholder="0.00"
+                        placeholder="Eth Amount"
                         value={ethAmount}
-                        onChange={(e) => setEthAmount(e.target.value)}
-                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            setEthAmount(value);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "-") {
+                            e.preventDefault();
+                          }
+                        }}
+                        min="0"
+                        step="any"
+                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 appearance-none"
                       />
                     </div>
                     <button
                       onClick={handleMaxClick}
+                      disabled={!isConnected}
                       className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors">
                       MAX
                     </button>
                   </div>
                 </div>
               </div>
+
+              {/* Wallet Info - Only show when connected */}
+              {isConnected && address && (
+                <div className="mb-6 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 rounded-2xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Available to stake */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs text-slate-400 font-medium">
+                          Available to stake
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">
+                        {ethBalance
+                          ? parseFloat(ethBalance.formatted).toFixed(4)
+                          : "0.0"}{" "}
+                        ETH
+                      </div>
+                    </div>
+
+                    {/* Staked amount */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs text-slate-400 font-medium">
+                          Staked amount
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">
+                        {stETHBalance} stETH
+                      </div>
+                    </div>
+
+                    {/* Wallet Address */}
+                    <div className="space-y-1">
+                      <span className="text-xs text-slate-400 font-medium block">
+                        Wallet Address
+                      </span>
+                      <button
+                        onClick={handleCopyAddress}
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
+                        <span>{formatAddress(address)}</span>
+                        {copied ? (
+                          <Check className="w-3.5 h-3.5 text-green-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Lido APR */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs text-slate-400 font-medium">
+                          Lido APR
+                        </span>
+                        <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+                      </div>
+                      <div className="text-2xl font-bold text-blue-400">
+                        {stats.apr}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* You will receive */}
               <div className="mb-8">
@@ -159,10 +298,29 @@ export default function StakePage() {
                 </div>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
               {/* Connect Button */}
-              <Button className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
-                Connect Wallet
-              </Button>
+              {isConnected ? (
+                <Button
+                  onClick={handleStake}
+                  disabled={isConnecting}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
+                  Stake Now
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleConnect}
+                  disabled={isConnected}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
+                  Connect Wallet
+                </Button>
+              )}
 
               {/* Transaction Info */}
               <div className="mt-6 space-y-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">
