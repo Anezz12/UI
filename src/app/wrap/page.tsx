@@ -1,15 +1,39 @@
 "use client";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { ArrowRightLeft, Info, Zap, Shield, TrendingUp } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Info,
+  Zap,
+  Shield,
+  TrendingUp,
+  Wallet,
+  Copy,
+  Check,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useWeb3Modal } from "@web3modal/wagmi/react";
+import { useAccount, useBalance } from "wagmi";
 
 export default function LidoWrapUnwrap() {
   const router = useRouter();
   const pathname = usePathname();
   const [amount, setAmount] = useState("");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const { open } = useWeb3Modal();
+  const { address, isConnected, isConnecting } = useAccount();
+
+  // Get ETH balance
+  const { data: ethBalance } = useBalance({
+    address: address,
+  });
+
+  // TODO: Get stETH and wstETH balance from contract
+  const stETHBalance = "0.0";
+  const wstETHBalance = "0.0";
 
   const activeTab = pathname === "/wrap/unwrap" ? "unwrap" : "wrap";
 
@@ -22,7 +46,46 @@ export default function LidoWrapUnwrap() {
   };
 
   const handleMaxClick = () => {
-    setAmount("0.0");
+    if (activeTab === "wrap" && stETHBalance) {
+      setAmount(stETHBalance);
+    } else if (activeTab === "unwrap" && wstETHBalance) {
+      setAmount(wstETHBalance);
+    }
+  };
+
+  const handleCopyAddress = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const handleConnect = async () => {
+    try {
+      await open();
+    } catch (error) {
+      console.error("Wallet connection error:", error);
+    }
+  };
+
+  const handleWrap = async () => {
+    if (!amount || parseFloat(amount) <= 0) {
+      return;
+    }
+    try {
+      console.log(
+        "Wrapping",
+        amount,
+        activeTab === "wrap" ? "stETH" : "wstETH"
+      );
+    } catch (error) {
+      console.error("Wrap error:", error);
+    }
   };
 
   const faqItems = [
@@ -67,7 +130,7 @@ export default function LidoWrapUnwrap() {
   };
 
   return (
-    <div className="min-h-screen  text-white">
+    <div className="min-h-screen text-white">
       <div className="max-w-6xl mx-auto px-4">
         {/* Hero Section */}
         <div className="text-center mb-12">
@@ -138,17 +201,111 @@ export default function LidoWrapUnwrap() {
                         placeholder="0.00"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
+                        disabled={!isConnected}
                         className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600"
                       />
                     </div>
                     <button
                       onClick={handleMaxClick}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors">
+                      disabled={!isConnected}
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       MAX
                     </button>
                   </div>
                 </div>
               </div>
+
+              {/* Wallet Info - Only show when connected */}
+              {isConnected && address && (
+                <div className="mb-6 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 rounded-2xl">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* ETH Balance */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs text-slate-400 font-medium">
+                          ETH balance
+                        </span>
+                      </div>
+                      <div className="text-xl font-bold text-white">
+                        {ethBalance
+                          ? parseFloat(ethBalance.formatted).toFixed(4)
+                          : "0.0"}{" "}
+                        ETH
+                      </div>
+                    </div>
+
+                    {/* Wallet Address */}
+                    <div className="space-y-1">
+                      <span className="text-xs text-slate-400 font-medium block">
+                        Wallet Address
+                      </span>
+                      <button
+                        onClick={handleCopyAddress}
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
+                        <span>{formatAddress(address)}</span>
+                        {copied ? (
+                          <Check className="w-3.5 h-3.5 text-green-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* stETH Balance */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
+                          <span className="text-[8px] font-bold text-white">
+                            st
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-400 font-medium">
+                          stETH balance
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="text-xl font-bold text-white">
+                          {stETHBalance} stETH
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          ≈{" "}
+                          {stETHBalance
+                            ? parseFloat(stETHBalance) * 0.922
+                            : "0.0"}{" "}
+                          wstETH
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* wstETH Balance */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center">
+                          <span className="text-[8px] font-bold text-white">
+                            w
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-400 font-medium">
+                          wstETH balance
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="text-xl font-bold text-white">
+                          {wstETHBalance} wstETH
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          ≈{" "}
+                          {wstETHBalance
+                            ? parseFloat(wstETHBalance) * 1.2164
+                            : "0.0"}{" "}
+                          stETH
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Swap Arrow */}
               <div className="flex justify-center -my-2 relative z-10">
@@ -176,10 +333,22 @@ export default function LidoWrapUnwrap() {
                 </div>
               </div>
 
-              {/* Connect Button */}
-              <Button className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
-                Connect Wallet
-              </Button>
+              {/* Connect/Wrap Button */}
+              {isConnected ? (
+                <Button
+                  onClick={handleWrap}
+                  disabled={!amount || parseFloat(amount) <= 0}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                  {activeTab === "wrap" ? "Wrap stETH" : "Unwrap wstETH"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleConnect}
+                  disabled={isConnecting}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isConnecting ? "Connecting..." : "Connect Wallet"}
+                </Button>
+              )}
 
               {/* Transaction Info */}
               <div className="mt-6 space-y-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">

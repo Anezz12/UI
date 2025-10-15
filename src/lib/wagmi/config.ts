@@ -28,8 +28,26 @@ const baseSepolia = {
   testnet: true,
 };
 
+// Define Base Mainnet
+const base = {
+  id: 8453,
+  name: "Base",
+  network: "base",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://mainnet.base.org"] },
+    public: { http: ["https://mainnet.base.org"] },
+  },
+  blockExplorers: {
+    default: {
+      name: "Base Explorer",
+      url: "https://basescan.org",
+    },
+  },
+};
+
 export const config = createConfig({
-  chains: [mainnet, sepolia, baseSepolia],
+  chains: [mainnet, sepolia, baseSepolia, base],
   connectors: [
     injected(),
     walletConnect({ projectId }),
@@ -39,6 +57,7 @@ export const config = createConfig({
     [mainnet.id]: http(),
     [sepolia.id]: http(),
     [baseSepolia.id]: http(),
+    [base.id]: http(),
   },
 });
 
