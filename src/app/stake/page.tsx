@@ -33,7 +33,7 @@ export default function StakePage() {
   console.log("Address:", address);
   console.log("Balance:", ethBalance);
 
-  // TODO: Get stETH balance from contract
+  // TODO: Get sUSDC balance from contract
   const stETHBalance = "0.0";
 
   const handleMaxClick = () => {
@@ -56,7 +56,7 @@ export default function StakePage() {
 
   const stats = {
     apr: "3.3%",
-    totalStaked: "8,691,541.703 ETH",
+    totalStaked: "8,691,541.703 USDC",
     stakers: "569,385",
     marketCap: "$35,031,698,430",
   };
@@ -79,7 +79,7 @@ export default function StakePage() {
 
     try {
       setError(null);
-      console.log("Staking", ethAmount, "ETH");
+      console.log("Staking", ethAmount, "USDC");
     } catch (error) {
       setError("Failed to stake. Please try again.");
       console.error("Stake error:", error);
@@ -90,25 +90,25 @@ export default function StakePage() {
     {
       question: "What is liquid staking?",
       answer:
-        "Liquid staking allows you to stake your ETH and receive a tokenized version (stETH) that represents your staked ETH plus staking rewards. Unlike traditional staking, you can use stETH in DeFi applications while still earning staking rewards.",
+        "Liquid staking allows you to stake your USDC and receive a tokenized version (sUSDC) that represents your staked USDC plus staking rewards. Unlike traditional staking, you can use sUSDC in DeFi applications while still earning staking rewards.",
       icon: Info,
     },
     {
       question: "How do I receive my staking rewards?",
       answer:
-        "Your stETH balance automatically increases daily to reflect your staking rewards. The token is a rebase token, meaning the amount in your wallet grows over time as rewards are earned. You can also track your rewards through the dashboard.",
+        "Your sUSDC balance automatically increases daily to reflect your staking rewards. The token is a rebase token, meaning the amount in your wallet grows over time as rewards are earned. You can also track your rewards through the dashboard.",
       icon: TrendingUp,
     },
     {
-      question: "Can I unstake my ETH at any time?",
+      question: "Can I unstake my USDC at any time?",
       answer:
-        "Yes, you can unstake your ETH at any time. However, there may be a withdrawal queue depending on network conditions. The unstaking process typically takes 1-5 days. You can also swap your stETH for ETH on decentralized exchanges for instant liquidity.",
+        "Yes, you can unstake your USDC at any time. However, there may be a withdrawal queue depending on network conditions. The unstaking process typically takes 1-5 days. You can also swap your sUSDC for USDC on decentralized exchanges for instant liquidity.",
       icon: Zap,
     },
     {
       question: "What are the risks of staking?",
       answer:
-        "The main risks include smart contract risk, slashing risk (validators can lose a portion of stake for misbehavior), and market risk (the value of ETH/stETH can fluctuate). Our protocol has been audited by multiple security firms, and we maintain insurance coverage to mitigate these risks.",
+        "The main risks include smart contract risk, slashing risk (validators can lose a portion of stake for misbehavior), and market risk (the value of USDC/sUSDC can fluctuate). Our protocol has been audited by multiple security firms, and we maintain insurance coverage to mitigate these risks.",
       icon: Shield,
     },
     {
@@ -120,7 +120,7 @@ export default function StakePage() {
     {
       question: "Is there a minimum staking amount?",
       answer:
-        "No, there is no minimum amount required to stake. You can stake any amount of ETH you wish, making it accessible for everyone regardless of their holdings.",
+        "No, there is no minimum amount required to stake. You can stake any amount of USDC you wish, making it accessible for everyone regardless of their holdings.",
       icon: Info,
     },
   ];
@@ -144,7 +144,7 @@ export default function StakePage() {
           </h1>
 
           <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-8">
-            Stake your ETH and receive stETH while earning competitive rewards
+            Stake your USDC and receive sUSDC while earning competitive rewards
           </p>
 
           {/* Quick Stats Banner */}
@@ -158,7 +158,7 @@ export default function StakePage() {
             <div className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-full backdrop-blur-sm">
               <span className="text-xs text-slate-400">Total Staked:</span>{" "}
               <span className="text-sm font-semibold text-cyan-400">
-                8.69M ETH
+                8.69M USDC
               </span>
             </div>
             <div className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-full backdrop-blur-sm">
@@ -186,7 +186,7 @@ export default function StakePage() {
                       </div>
                       <Input
                         type="number"
-                        placeholder="Eth Amount"
+                        placeholder="USDC Amount"
                         value={ethAmount}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -207,7 +207,8 @@ export default function StakePage() {
                     <button
                       onClick={handleMaxClick}
                       disabled={!isConnected}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors">
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors"
+                    >
                       MAX
                     </button>
                   </div>
@@ -230,7 +231,7 @@ export default function StakePage() {
                         {ethBalance
                           ? parseFloat(ethBalance.formatted).toFixed(4)
                           : "0.0"}{" "}
-                        ETH
+                        USDC
                       </div>
                     </div>
 
@@ -243,7 +244,7 @@ export default function StakePage() {
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-white">
-                        {stETHBalance} stETH
+                        {stETHBalance} sUSDC
                       </div>
                     </div>
 
@@ -254,7 +255,8 @@ export default function StakePage() {
                       </span>
                       <button
                         onClick={handleCopyAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
+                      >
                         <span>{formatAddress(address)}</span>
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
@@ -264,12 +266,12 @@ export default function StakePage() {
                       </button>
                     </div>
 
-                    {/* Lido APR */}
+                    {/* superCluster APR */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-blue-400" />
                         <span className="text-xs text-slate-400 font-medium">
-                          Lido APR
+                          superCluster APR
                         </span>
                         <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
                       </div>
@@ -289,10 +291,10 @@ export default function StakePage() {
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-lg">
-                      st
+                      s
                     </div>
                     <div className="text-3xl font-semibold text-white">
-                      {ethAmount || "0.00"} stETH
+                      {ethAmount || "0.00"} sUSDC
                     </div>
                   </div>
                 </div>
@@ -310,14 +312,16 @@ export default function StakePage() {
                 <Button
                   onClick={handleStake}
                   disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40"
+                >
                   Stake Now
                 </Button>
               ) : (
                 <Button
                   onClick={handleConnect}
                   disabled={isConnected}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40">
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40"
+                >
                   Connect Wallet
                 </Button>
               )}
@@ -327,7 +331,7 @@ export default function StakePage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Exchange Rate</span>
                   <span className="text-white font-medium">
-                    1 ETH = 1 stETH
+                    1 USDC = 1 sUSDC
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -355,8 +359,8 @@ export default function StakePage() {
                     Why Stake with Us?
                   </h3>
                   <p className="text-sm text-slate-300 leading-relaxed">
-                    Stake ETH and receive stETH tokens that represent your
-                    staked ETH plus all accrued rewards. Your stETH balance
+                    Stake USDC and receive sUSDC tokens that represent your
+                    staked USDC plus all accrued rewards. Your sUSDC balance
                     automatically increases daily, and you can use it across
                     DeFi while earning staking yields.
                   </p>
@@ -372,7 +376,8 @@ export default function StakePage() {
                 </h3>
                 <a
                   href="#"
-                  className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors">
+                  className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors"
+                >
                   View on Etherscan
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -429,12 +434,14 @@ export default function StakePage() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
+                    >
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
+                      >
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>

@@ -31,7 +31,7 @@ export default function LidoWrapUnwrap() {
     address: address,
   });
 
-  // TODO: Get stETH and wstETH balance from contract
+  // TODO: Get sUSDC and wsUSDC balance from contract
   const stETHBalance = "0.0";
   const wstETHBalance = "0.0";
 
@@ -81,7 +81,7 @@ export default function LidoWrapUnwrap() {
       console.log(
         "Wrapping",
         amount,
-        activeTab === "wrap" ? "stETH" : "wstETH"
+        activeTab === "wrap" ? "sUSDC" : "wsUSDC"
       );
     } catch (error) {
       console.error("Wrap error:", error);
@@ -90,27 +90,28 @@ export default function LidoWrapUnwrap() {
 
   const faqItems = [
     {
-      question: "What are the risks of engaging with the Lido protocol?",
+      question:
+        "What are the risks of engaging with the superCluster protocol?",
       answer:
-        "The Lido protocol carries smart contract risk, slashing risk, and other DeFi-related risks. Our protocol has been audited by multiple security firms, and we maintain insurance coverage to mitigate these risks.",
+        "The superCluster protocol carries smart contract risk, slashing risk, and other DeFi-related risks. Our protocol has been audited by multiple security firms, and we maintain insurance coverage to mitigate these risks.",
       icon: Shield,
     },
     {
-      question: "What is wstETH?",
+      question: "What is wsUSDC?",
       answer:
-        "wstETH is a wrapped version of stETH that maintains a fixed balance and uses an internal share system. It's designed to be compatible with DeFi protocols that don't support rebasing tokens.",
+        "wsUSDC is a wrapped version of sUSDC that maintains a fixed balance and uses an internal share system. It's designed to be compatible with DeFi protocols that don't support rebasing tokens.",
       icon: Info,
     },
     {
-      question: "How can I get wstETH?",
+      question: "How can I get wsUSDC?",
       answer:
-        "You can get wstETH by wrapping your stETH tokens through this interface. The process is simple and only requires one transaction.",
+        "You can get wsUSDC by wrapping your sUSDC tokens through this interface. The process is simple and only requires one transaction.",
       icon: Zap,
     },
     {
-      question: "How can I use wstETH?",
+      question: "How can I use wsUSDC?",
       answer:
-        "wstETH can be used across various DeFi protocols and platforms including lending markets, liquidity pools, and yield farming strategies. It maintains the same value as stETH but with a fixed balance.",
+        "wsUSDC can be used across various DeFi protocols and platforms including lending markets, liquidity pools, and yield farming strategies. It maintains the same value as sUSDC but with a fixed balance.",
       icon: TrendingUp,
     },
   ];
@@ -119,14 +120,14 @@ export default function LidoWrapUnwrap() {
     youWillReceive: amount ? `${parseFloat(amount) * 0.922}` : "0.0",
     maxUnlockCost: "$0.25",
     maxTransactionCost: "$0.59",
-    exchangeRate: "1 stETH = 0.9220 wstETH",
+    exchangeRate: "1  = 0.9220 wsUSDC",
     allowance: "-",
   };
 
   const unwrapDetails = {
     youWillReceive: amount ? `${parseFloat(amount) * 1.2164}` : "0.0",
     maxTransactionCost: "$0.56",
-    exchangeRate: "1 wstETH = 1.2164 stETH",
+    exchangeRate: "1 wsUSDC = 1.2164 sUSDC",
   };
 
   return (
@@ -146,7 +147,7 @@ export default function LidoWrapUnwrap() {
             </span>
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Seamlessly wrap and unwrap stETH for enhanced DeFi compatibility
+            Seamlessly wrap and unwrap sUSDC for enhanced DeFi compatibility
           </p>
         </div>
 
@@ -162,11 +163,12 @@ export default function LidoWrapUnwrap() {
                     activeTab === "wrap"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}>
+                  }`}
+                >
                   {activeTab === "wrap" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl"></div>
                   )}
-                  <span className="relative z-10">Wrap stETH</span>
+                  <span className="relative z-10">Wrap sUSDC</span>
                 </button>
                 <button
                   onClick={() => handleTabChange("unwrap")}
@@ -174,11 +176,12 @@ export default function LidoWrapUnwrap() {
                     activeTab === "unwrap"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}>
+                  }`}
+                >
                   {activeTab === "unwrap" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl"></div>
                   )}
-                  <span className="relative z-10">Unwrap wstETH</span>
+                  <span className="relative z-10">Unwrap wsUSDC</span>
                 </button>
               </div>
             </div>
@@ -194,7 +197,7 @@ export default function LidoWrapUnwrap() {
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-lg">
-                        {activeTab === "wrap" ? "st" : "w"}
+                        {activeTab === "wrap" ? "s" : "ws"}
                       </div>
                       <Input
                         type="number"
@@ -208,7 +211,8 @@ export default function LidoWrapUnwrap() {
                     <button
                       onClick={handleMaxClick}
                       disabled={!isConnected}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       MAX
                     </button>
                   </div>
@@ -242,7 +246,8 @@ export default function LidoWrapUnwrap() {
                       </span>
                       <button
                         onClick={handleCopyAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
+                      >
                         <span>{formatAddress(address)}</span>
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
@@ -252,7 +257,7 @@ export default function LidoWrapUnwrap() {
                       </button>
                     </div>
 
-                    {/* stETH Balance */}
+                    {/* sUSDC Balance */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
@@ -261,24 +266,24 @@ export default function LidoWrapUnwrap() {
                           </span>
                         </div>
                         <span className="text-xs text-slate-400 font-medium">
-                          stETH balance
+                          sUSDC balance
                         </span>
                       </div>
                       <div className="space-y-0.5">
                         <div className="text-xl font-bold text-white">
-                          {stETHBalance} stETH
+                          {stETHBalance} sUSDC
                         </div>
                         <div className="text-xs text-slate-500">
                           ≈{" "}
                           {stETHBalance
                             ? parseFloat(stETHBalance) * 0.922
                             : "0.0"}{" "}
-                          wstETH
+                          wsUSDC
                         </div>
                       </div>
                     </div>
 
-                    {/* wstETH Balance */}
+                    {/* wsUSDC Balance */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center">
@@ -287,19 +292,19 @@ export default function LidoWrapUnwrap() {
                           </span>
                         </div>
                         <span className="text-xs text-slate-400 font-medium">
-                          wstETH balance
+                          wsUSDC balance
                         </span>
                       </div>
                       <div className="space-y-0.5">
                         <div className="text-xl font-bold text-white">
-                          {wstETHBalance} wstETH
+                          {wstETHBalance} wsUSDC
                         </div>
                         <div className="text-xs text-slate-500">
                           ≈{" "}
                           {wstETHBalance
                             ? parseFloat(wstETHBalance) * 1.2164
                             : "0.0"}{" "}
-                          stETH
+                          sUSDC
                         </div>
                       </div>
                     </div>
@@ -322,7 +327,7 @@ export default function LidoWrapUnwrap() {
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-lg">
-                      {activeTab === "wrap" ? "w" : "st"}
+                      {activeTab === "wrap" ? "ws" : "s"}
                     </div>
                     <div className="text-3xl font-semibold text-white">
                       {activeTab === "wrap"
@@ -338,14 +343,16 @@ export default function LidoWrapUnwrap() {
                 <Button
                   onClick={handleWrap}
                   disabled={!amount || parseFloat(amount) <= 0}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
-                  {activeTab === "wrap" ? "Wrap stETH" : "Unwrap wstETH"}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {activeTab === "wrap" ? "Wrap sUSDC" : "Unwrap wsUSDC"}
                 </Button>
               ) : (
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               )}
@@ -402,8 +409,8 @@ export default function LidoWrapUnwrap() {
                   </h3>
                   <p className="text-sm text-slate-300 leading-relaxed">
                     {activeTab === "wrap"
-                      ? "Wrapped stETH (wstETH) maintains a fixed balance and is compatible with DeFi protocols that don't support rebasing tokens. Perfect for lending, borrowing, and liquidity provision."
-                      : "Unwrapping wstETH back to stETH allows you to receive the rebasing rewards directly in your wallet. Your balance will automatically increase as staking rewards are earned."}
+                      ? "Wrapped sUSDC (wsUSDC) maintains a fixed balance and is compatible with DeFi protocols that don't support rebasing tokens. Perfect for lending, borrowing, and liquidity provision."
+                      : "Unwrapping wsUSDC back to sUSDC allows you to receive the rebasing rewards directly in your wallet. Your balance will automatically increase as staking rewards are earned."}
                   </p>
                 </div>
               </div>
@@ -424,12 +431,14 @@ export default function LidoWrapUnwrap() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
+                    >
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
+                      >
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>
