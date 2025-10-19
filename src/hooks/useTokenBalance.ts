@@ -36,7 +36,7 @@ export function useUSDCBalance() {
     formatted,
     isLoading,
     refetch,
-    raw: balance?.value ?? 0n,
+    raw: balance?.value ?? BigInt(0),
   };
 }
 
@@ -92,7 +92,7 @@ export function useSTokenBalance() {
   }, [rawBalance, decimals]);
 
   return {
-    balance: rawBalance ?? 0n,
+    balance: rawBalance ?? BigInt(0),
     formatted,
     decimals: decimals ?? TOKEN_DECIMALS.SUSDC,
     sTokenAddress,

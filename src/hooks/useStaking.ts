@@ -9,6 +9,20 @@ import {
 import { MOCK_USDC_ABI } from "@/contracts/abis/MockUSDC";
 import { SUPERCLUSTER_ABI } from "@/contracts/abis/SuperCluster";
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const err = error as Record<string, unknown>;
+    if (typeof err.shortMessage === "string") return err.shortMessage;
+    if (typeof err.message === "string") return err.message;
+  }
+
+  return "Failed to stake. Please try again.";
+}
+
 export function useStaking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,12 +80,9 @@ export function useStaking() {
       setTxHash(depositTx);
       setError(null);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Staking error:", err);
-      const errorMessage =
-        err?.shortMessage ??
-        err?.message ??
-        "Failed to stake. Please try again.";
+      const errorMessage = getErrorMessage(err);
       setError(errorMessage);
       return false;
     } finally {
