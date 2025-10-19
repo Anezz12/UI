@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Address } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { parseUnits } from "viem";
 import {
@@ -6,8 +7,11 @@ import {
   TOKEN_DECIMALS,
   isBaseSepolia,
 } from "@/contracts/addresses";
+import { SupportedChainId } from "@/contracts/types";
 import { MOCK_USDC_ABI } from "@/contracts/abis/MockUSDC";
 import { SUPERCLUSTER_ABI } from "@/contracts/abis/SuperCluster";
+
+const STORAGE_KEY = "supercluster.selectedPilot";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -32,13 +36,13 @@ export function useStaking() {
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  const stake = async (amount: string) => {
+  const stake = async (amount: string, pilotAddress?: Address) => {
     if (!address || !chainId) {
       setError("Please connect your wallet");
       return false;
     }
 
-    if (!isBaseSepolia(chainId)) {
+    if (!isBaseSepolia(chainId as SupportedChainId)) {
       setError("Please switch to Base Sepolia network");
       return false;
     }
@@ -54,6 +58,14 @@ export function useStaking() {
       setTxHash(null);
 
       const amountBigInt = parseUnits(amount, TOKEN_DECIMALS.USDC);
+
+      let targetPilot: Address = pilotAddress ?? CONTRACTS.pilot;
+      if (!pilotAddress && typeof window !== "undefined") {
+        const savedAddress = window.localStorage.getItem(STORAGE_KEY);
+        if (savedAddress && savedAddress.startsWith("0x")) {
+          targetPilot = savedAddress as Address;
+        }
+      }
 
       console.log("Approving USDC...");
       const approveTx = await writeContractAsync({
@@ -71,7 +83,7 @@ export function useStaking() {
         address: CONTRACTS.superCluster,
         abi: SUPERCLUSTER_ABI,
         functionName: "deposit",
-        args: [CONTRACTS.pilot, CONTRACTS.mockUSDC, amountBigInt],
+        args: [targetPilot, CONTRACTS.mockUSDC, amountBigInt],
       });
 
       await publicClient?.waitForTransactionReceipt({ hash: depositTx });

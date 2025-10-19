@@ -12,15 +12,16 @@ export default function NavbarWrapper() {
       active: pathname === "/home",
     },
     {
-      name: "Stake",
-      href: "/stake",
-      active: pathname === "/stake",
+      name: "Pilot",
+      href: "/pilot",
+      active: pathname === "/pilot" || pathname === "/",
     },
     {
-      name: "Operator",
-      href: "/operator",
-      active: pathname === "/operator" || pathname === "/",
+      name: "Deposit",
+      href: "/deposit",
+      active: pathname === "/deposit",
     },
+
     {
       name: "Wrap",
       href: "/wrap",
@@ -30,6 +31,11 @@ export default function NavbarWrapper() {
       name: "Withdrawals",
       href: "/withdrawals/request",
       active: pathname.startsWith("/withdrawals"),
+    },
+    {
+      name: "Faucet",
+      href: "/faucet",
+      active: pathname === "/faucet",
     },
     {
       name: "Docs",

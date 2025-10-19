@@ -30,12 +30,18 @@ interface Asset {
   bestFixedAPY: number;
   markets: Market[];
   marketsCount: number;
+  address: `0x${string}`;
+  status?: string;
+  focus?: string;
+  description?: string;
 }
 
 interface AssetTableProps {
   assets: Asset[];
   expandedAssets: string[];
   toggleAssetExpansion: (assetId: string) => void;
+  selectedPilotId?: string;
+  onSelectPilot?: (asset: Asset) => void;
 }
 
 type SortField = "name" | "markets" | "tvl" | "bestLong" | "bestFixed";
@@ -45,6 +51,8 @@ export function AssetTable({
   assets,
   expandedAssets,
   toggleAssetExpansion,
+  selectedPilotId,
+  onSelectPilot,
 }: AssetTableProps) {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,12 +134,19 @@ export function AssetTable({
 
         {/* Table Body */}
         {assets.map((asset) => {
+          const isSelected = selectedPilotId === asset.id;
           const isExpanded = expandedAssets.includes(asset.id);
 
           return (
             <div key={asset.id} className="space-y-2">
               {/* Desktop Row */}
-              <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center bg-gray-500/15 hover:bg-gray-500/20 rounded-md px-6 py-3 gap-4 shadow transition-colors">
+              <div
+                className={`hidden md:grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center rounded-md px-6 py-3 gap-4 shadow transition-colors ${
+                  isSelected
+                    ? "bg-cyan-500/15 border border-cyan-500/40"
+                    : "bg-gray-500/15 hover:bg-gray-500/20 border border-transparent"
+                }`}
+              >
                 {/* Icon & Name */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -189,7 +204,13 @@ export function AssetTable({
               </div>
 
               {/* Mobile Card */}
-              <div className="md:hidden bg-gray-500/15 rounded-xl p-4 shadow">
+              <div
+                className={`md:hidden rounded-xl p-4 shadow ${
+                  isSelected
+                    ? "bg-cyan-500/15 border border-cyan-500/40"
+                    : "bg-gray-500/15"
+                }`}
+              >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3 flex-1">
@@ -316,6 +337,11 @@ export function AssetTable({
                   {selectedAsset.symbol} • {selectedAsset.chain} •{" "}
                   {selectedAsset.category}
                 </p>
+                {selectedAsset.status && (
+                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-300 mt-1">
+                    {selectedAsset.status}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -337,16 +363,48 @@ export function AssetTable({
               <div className="space-y-1 text-white/70 text-sm">
                 <p>Total Pools: {selectedAsset.pools}</p>
                 <p>Category: {selectedAsset.category}</p>
+                {selectedAsset.focus && <p>Focus: {selectedAsset.focus}</p>}
+                <p className="break-words">
+                  Address:{" "}
+                  <span className="font-mono text-xs text-white">
+                    {selectedAsset.address}
+                  </span>
+                </p>
+                {selectedAsset.description && (
+                  <p className="pt-2 text-white/60">
+                    {selectedAsset.description}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 py-3 px-6 hover:from-blue-700 text-white font-medium text-lg rounded-xl shadow-lg  transition-all duration-300">
-                Stake
+              <button
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 py-3 px-6 hover:from-blue-700 text-white font-medium text-lg rounded-xl shadow-lg transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                onClick={() => {
+                  onSelectPilot?.(selectedAsset);
+                  closeModal();
+                }}
+                disabled={selectedPilotId === selectedAsset.id}
+              >
+                {selectedPilotId === selectedAsset.id
+                  ? "Selected Pilot"
+                  : "Select Pilot"}
               </button>
-              <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-xl transition-colors">
-                View More
+              <button
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-xl transition-colors"
+                onClick={() => {
+                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                    navigator.clipboard.writeText(selectedAsset.address).catch(
+                      (error) => {
+                        console.error("Failed to copy pilot address", error);
+                      }
+                    );
+                  }
+                }}
+              >
+                Copy Address
               </button>
             </div>
           </div>
