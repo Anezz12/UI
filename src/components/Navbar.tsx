@@ -12,14 +12,14 @@ export default function NavbarWrapper() {
       active: pathname === "/home",
     },
     {
-      name: "Markets",
-      href: "/markets",
-      active: pathname === "/markets" || pathname === "/",
-    },
-    {
       name: "Stake",
       href: "/stake",
       active: pathname === "/stake",
+    },
+    {
+      name: "Operator",
+      href: "/operator",
+      active: pathname === "/operator" || pathname === "/",
     },
     {
       name: "Wrap",

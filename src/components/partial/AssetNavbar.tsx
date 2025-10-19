@@ -65,11 +65,10 @@ export function Navbar({ links }: NavbarProps) {
     <>
       <nav
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-slate-900/80 backdrop-blur-md border-b border-slate-800"
-            : "bg-transparent"
-        }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          scrolled ? "bg-slate-900/80 backdrop-blur-md " : "bg-transparent"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 ">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
@@ -91,7 +90,8 @@ export function Navbar({ links }: NavbarProps) {
                         link.active
                           ? "text-white"
                           : "text-slate-400 hover:text-white"
-                      }`}>
+                      }`}
+                    >
                       <span className="flex items-center gap-1">
                         {link.name}
                         <ChevronDownIcon className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-200" />
@@ -113,7 +113,8 @@ export function Navbar({ links }: NavbarProps) {
                         <DropdownMenuItem key={item.name} asChild>
                           <Link
                             href={item.href}
-                            className="px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg">
+                            className="px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg"
+                          >
                             {item.name}
                           </Link>
                         </DropdownMenuItem>
@@ -124,11 +125,12 @@ export function Navbar({ links }: NavbarProps) {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`relative px-1 py-2 text-sm font-medium transition-colors ${
+                    className={`relative px-1 py-2 text-md font-medium transition-colors ${
                       link.active
                         ? "text-white"
                         : "text-slate-400 hover:text-white"
-                    }`}>
+                    }`}
+                  >
                     {link.name}
                     {link.active && (
                       <motion.div
@@ -151,11 +153,11 @@ export function Navbar({ links }: NavbarProps) {
               {/* Connect Wallet - Desktop */}
               {isConnected && address ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 outline-none">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <DropdownMenuTrigger className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all duration-300 outline-none">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                     <span>{formatAddress(address)}</span>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-slate-900/95 backdrop-blur-md border border-slate-800 shadow-xl rounded-xl mt-2 min-w-[220px]">
+                  <DropdownMenuContent className="bg-gray-900 backdrop-blur-md border border-slate-800 shadow-xl rounded-xl mt-2 min-w-[220px]">
                     <div className="px-3 py-2.5 border-b border-slate-800">
                       <p className="text-xs text-slate-400">Wallet Address</p>
                       <p className="text-sm text-white font-mono mt-1">
@@ -164,7 +166,8 @@ export function Navbar({ links }: NavbarProps) {
                     </div>
                     <DropdownMenuItem
                       onClick={() => navigator.clipboard.writeText(address)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg m-1">
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white bg-gray-800 hover:bg-gray-700 cursor-pointer transition-colors rounded-lg m-1"
+                    >
                       <ClipboardDocumentIcon className="w-4 h-4" />
                       Copy Address
                     </DropdownMenuItem>
@@ -175,14 +178,16 @@ export function Navbar({ links }: NavbarProps) {
                           "_blank"
                         )
                       }
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg m-1">
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 cursor-pointer transition-colors rounded-lg m-1"
+                    >
                       <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                       View Explorer
                     </DropdownMenuItem>
                     <div className="border-t border-slate-800 mt-1 pt-1">
                       <DropdownMenuItem
                         onClick={() => disconnect()}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer transition-colors rounded-lg m-1">
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer transition-colors rounded-lg m-1"
+                      >
                         <PowerIcon className="w-4 h-4" />
                         Disconnect
                       </DropdownMenuItem>
@@ -193,7 +198,8 @@ export function Navbar({ links }: NavbarProps) {
                 <button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <WalletIcon className="w-4 h-4" />
                   {isConnecting ? "Connecting..." : "Connect"}
                 </button>
@@ -202,7 +208,8 @@ export function Navbar({ links }: NavbarProps) {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="md:hidden p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-white transition-colors border border-slate-700">
+                className="md:hidden p-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-white transition-colors border border-slate-700"
+              >
                 {menuOpen ? (
                   <XMarkIcon className="w-5 h-5" />
                 ) : (
@@ -229,7 +236,8 @@ export function Navbar({ links }: NavbarProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-16 left-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl z-40 md:hidden">
+            className="fixed top-16 left-0 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl z-40 md:hidden"
+          >
             <div className="px-4 py-4 space-y-1">
               {/* Mobile Navigation Links */}
               {links.map((link) =>
@@ -240,7 +248,8 @@ export function Navbar({ links }: NavbarProps) {
                         link.active
                           ? "text-white bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
                           : "text-slate-400"
-                      }`}>
+                      }`}
+                    >
                       {link.name}
                     </div>
                     <div className="pl-4 space-y-1">
@@ -249,7 +258,8 @@ export function Navbar({ links }: NavbarProps) {
                           key={item.name}
                           href={item.href}
                           onClick={() => setMenuOpen(false)}
-                          className="block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
+                          className="block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors"
+                        >
                           {item.name}
                         </Link>
                       ))}
@@ -264,7 +274,8 @@ export function Navbar({ links }: NavbarProps) {
                       link.active
                         ? "text-white bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-l-2 border-blue-500"
                         : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                    }`}>
+                    }`}
+                  >
                     {link.name}
                   </Link>
                 )
@@ -285,7 +296,8 @@ export function Navbar({ links }: NavbarProps) {
                         navigator.clipboard.writeText(address);
                         setMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors"
+                    >
                       <ClipboardDocumentIcon className="w-4 h-4" />
                       Copy Address
                     </button>
@@ -297,7 +309,8 @@ export function Navbar({ links }: NavbarProps) {
                         );
                         setMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors"
+                    >
                       <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                       View Explorer
                     </button>
@@ -306,7 +319,8 @@ export function Navbar({ links }: NavbarProps) {
                         disconnect();
                         setMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors">
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
                       <PowerIcon className="w-4 h-4" />
                       Disconnect
                     </button>
@@ -318,7 +332,8 @@ export function Navbar({ links }: NavbarProps) {
                       setMenuOpen(false);
                     }}
                     disabled={isConnecting}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25">
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all shadow-lg shadow-blue-500/25"
+                  >
                     <WalletIcon className="w-4 h-4" />
                     {isConnecting ? "Connecting..." : "Connect Wallet"}
                   </button>

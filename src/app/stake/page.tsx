@@ -126,24 +126,17 @@ export default function StakePage() {
   ];
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen pb-12 text-white">
       <div className="max-w-6xl mx-auto px-4">
         {/* Hero Section - Enhanced */}
         <div className="text-center mb-12 relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6 backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-blue-400 font-medium">
-              Liquid Staking Protocol
-            </span>
-          </div>
-
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
               Stake & Earn Rewards
             </span>
           </h1>
 
-          <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-8">
+          <p className="text-md text-slate-400 max-w-2xl mx-auto mb-8">
             Stake your USDC and receive sUSDC while earning competitive rewards
           </p>
 
@@ -181,9 +174,6 @@ export default function StakePage() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-xl">
-                        Ξ
-                      </div>
                       <Input
                         type="number"
                         placeholder="USDC Amount"
@@ -201,7 +191,7 @@ export default function StakePage() {
                         }}
                         min="0"
                         step="any"
-                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 appearance-none"
+                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 h-auto text-white placeholder:text-slate-600 appearance-none"
                       />
                     </div>
                     <button
@@ -269,11 +259,9 @@ export default function StakePage() {
                     {/* superCluster APR */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-blue-400" />
                         <span className="text-xs text-slate-400 font-medium">
                           superCluster APR
                         </span>
-                        <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
                       </div>
                       <div className="text-2xl font-bold text-blue-400">
                         {stats.apr}
@@ -312,7 +300,7 @@ export default function StakePage() {
                 <Button
                   onClick={handleStake}
                   disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40"
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 text-white font-bold text-lg rounded-xl shadow-lg  transition-all duration-300"
                 >
                   Stake Now
                 </Button>
@@ -320,7 +308,7 @@ export default function StakePage() {
                 <Button
                   onClick={handleConnect}
                   disabled={isConnected}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40"
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 text-white font-bold text-lg rounded-xl shadow-lg  transition-all duration-300"
                 >
                   Connect Wallet
                 </Button>
@@ -423,7 +411,7 @@ export default function StakePage() {
           {/* FAQ Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <h3 className="text-2xl font-bold mb-6 text-white">
+              <h3 className="text-2xl font-bold mb-6 text-gray-300">
                 Common Questions
               </h3>
               <div className="space-y-3">

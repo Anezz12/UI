@@ -26,13 +26,7 @@ interface Asset {
   logo: string;
   category: string;
   totalLiquidity: number;
-  tvl: string;
-  volume24h: string;
-  apy: string;
   pools: number;
-  totalTVL: number;
-  total24hVol: number;
-  bestLongYieldAPY: number;
   bestFixedAPY: number;
   markets: Market[];
   marketsCount: number;
@@ -99,11 +93,12 @@ export function AssetTable({
     <>
       <div className="space-y-2 md:px-0">
         {/* Desktop Table Header */}
-        <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-800/50 rounded-t-xl px-6 py-3 gap-4 border-b border-gray-700/50">
+        <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center bg-gray-800/50 rounded-t-xl px-6 py-4 gap-4 border-b border-gray-700/50">
           {/* Name Column */}
           <div
             className="group cursor-pointer flex items-center text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("name")}>
+            onClick={() => handleSort("name")}
+          >
             <span className="text-xs font-semibold uppercase tracking-wider">
               Asset Name
             </span>
@@ -112,57 +107,17 @@ export function AssetTable({
 
           {/* Markets Column */}
           <div
-            className="group cursor-pointer flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("markets")}>
+            className="group cursor-pointer flex items-center justify-start text-gray-400 hover:text-gray-200 transition-colors"
+            onClick={() => handleSort("markets")}
+          >
             <span className="text-xs font-semibold uppercase tracking-wider">
               Markets
             </span>
             {getSortIcon("markets")}
           </div>
 
-          {/* TVL & Volume Column */}
-          <div
-            className="group cursor-pointer flex items-center justify-end text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("tvl")}>
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                TVL
-              </span>
-              <span className="text-[10px] text-gray-500 mt-0.5">
-                24H Volume
-              </span>
-            </div>
-            {getSortIcon("tvl")}
-          </div>
-
-          {/* Best Long APY Column */}
-          <div
-            className="group cursor-pointer flex items-center justify-end text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("bestLong")}>
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Long APY
-              </span>
-              <span className="text-[10px] text-gray-500 mt-0.5">YT</span>
-            </div>
-            {getSortIcon("bestLong")}
-          </div>
-
-          {/* Best Fixed APY Column */}
-          <div
-            className="group cursor-pointer flex items-center justify-end text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("bestFixed")}>
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-semibold uppercase tracking-wider">
-                Fixed APY
-              </span>
-              <span className="text-[10px] text-gray-500 mt-0.5">PT</span>
-            </div>
-            {getSortIcon("bestFixed")}
-          </div>
-
           {/* Actions Column */}
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-start">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
               Actions
             </span>
@@ -176,7 +131,7 @@ export function AssetTable({
           return (
             <div key={asset.id} className="space-y-2">
               {/* Desktop Row */}
-              <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-500/15 hover:bg-gray-500/20 rounded-md px-6 py-3 gap-4 shadow transition-colors">
+              <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center bg-gray-500/15 hover:bg-gray-500/20 rounded-md px-6 py-3 gap-4 shadow transition-colors">
                 {/* Icon & Name */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -202,49 +157,27 @@ export function AssetTable({
                 </div>
 
                 {/* Markets */}
-                <div className="flex justify-center">
+                <div className="flex justify-start">
                   <span className="bg-blue-900/60 text-blue-400 px-2 py-1 rounded-md text-xs font-semibold">
                     {asset.marketsCount || asset.pools} Markets
                   </span>
                 </div>
 
-                {/* TVL & Volume */}
-                <div className="text-right">
-                  <div className="text-blue-500 text-sm font-medium">
-                    {asset.tvl}
-                  </div>
-                  <div className="text-white/60 text-xs mt-0.5">
-                    {asset.volume24h}
-                  </div>
-                </div>
-
-                {/* Best Long */}
-                <div className="text-right">
-                  <div className="text-blue-500 text-sm font-medium">
-                    {asset.bestLongYieldAPY}%
-                  </div>
-                </div>
-
-                {/* Best Fixed */}
-                <div className="text-right">
-                  <div className="text-blue-500 text-sm font-medium">
-                    {asset.bestFixedAPY}%
-                  </div>
-                </div>
-
                 {/* Actions */}
-                <div className="flex items-center gap-2 justify-self-end">
+                <div className="flex items-center gap-2 justify-start">
                   <button
                     onClick={() => openModal(asset)}
-                    className="hover:bg-white/10 p-2 rounded-lg transition-colors"
-                    title="View Details">
+                    className="hover:bg-white/10 p-2 rounded-xl transition-colors"
+                    title="View Details"
+                  >
                     <ExternalLink className="h-4 w-4 text-white/60" />
                   </button>
                   {asset.markets && asset.markets.length > 0 && (
                     <button
                       onClick={() => toggleAssetExpansion(asset.id)}
-                      className="hover:bg-white/10 p-2 rounded-lg transition-colors"
-                      title={isExpanded ? "Collapse" : "Expand"}>
+                      className="hover:bg-white/10 p-2 rounded-xl transition-colors"
+                      title={isExpanded ? "Collapse" : "Expand"}
+                    >
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4 text-white/60" />
                       ) : (
@@ -256,7 +189,7 @@ export function AssetTable({
               </div>
 
               {/* Mobile Card */}
-              <div className="md:hidden bg-gray-500/15 rounded-lg p-4 shadow">
+              <div className="md:hidden bg-gray-500/15 rounded-xl p-4 shadow">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3 flex-1">
@@ -285,35 +218,21 @@ export function AssetTable({
                   </div>
                   <button
                     onClick={() => openModal(asset)}
-                    className="hover:bg-white/10 p-2 rounded-lg transition-colors flex-shrink-0">
+                    className="hover:bg-white/10 p-2 rounded-xl transition-colors flex-shrink-0"
+                  >
                     <ExternalLink className="h-4 w-4 text-white/60" />
                   </button>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="bg-gray-800/30 rounded-lg p-2.5">
-                    <p className="text-gray-400 text-xs mb-1">TVL</p>
-                    <p className="text-blue-500 text-sm font-medium">
-                      {asset.tvl}
-                    </p>
-                    <p className="text-white/60 text-xs mt-0.5">
-                      {asset.volume24h}
-                    </p>
-                  </div>
-                  <div className="bg-gray-800/30 rounded-lg p-2.5">
+                  <div className="bg-gray-800/30 rounded-xl p-2.5">
                     <p className="text-gray-400 text-xs mb-1">Markets</p>
                     <p className="text-blue-400 text-sm font-medium">
                       {asset.marketsCount || asset.pools}
                     </p>
                   </div>
-                  <div className="bg-gray-800/30 rounded-lg p-2.5">
-                    <p className="text-gray-400 text-xs mb-1">Long APY (YT)</p>
-                    <p className="text-blue-500 text-sm font-medium">
-                      {asset.bestLongYieldAPY}%
-                    </p>
-                  </div>
-                  <div className="bg-gray-800/30 rounded-lg p-2.5">
+                  <div className="bg-gray-800/30 rounded-xl p-2.5">
                     <p className="text-gray-400 text-xs mb-1">Fixed APY (PT)</p>
                     <p className="text-blue-500 text-sm font-medium">
                       {asset.bestFixedAPY}%
@@ -325,7 +244,8 @@ export function AssetTable({
                 {asset.markets && asset.markets.length > 0 && (
                   <button
                     onClick={() => toggleAssetExpansion(asset.id)}
-                    className="w-full bg-gray-800/40 hover:bg-gray-800/60 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-white/80 text-sm">
+                    className="w-full bg-gray-800/40 hover:bg-gray-800/60 py-2 rounded-xl transition-colors flex items-center justify-center gap-2 text-white/80 text-sm"
+                  >
                     {isExpanded ? "Hide Markets" : "Show Markets"}
                     {isExpanded ? (
                       <ChevronUp className="h-4 w-4" />
@@ -342,7 +262,8 @@ export function AssetTable({
                   {asset.markets.map((market) => (
                     <div
                       key={market.id}
-                      className="bg-gray-500/10 hover:bg-gray-500/15 rounded-md px-4 md:px-6 py-2 md:py-2 text-sm text-white/80 transition-colors">
+                      className="bg-gray-500/10 hover:bg-gray-500/15 rounded-md px-4 md:px-6 py-2 md:py-2 text-sm text-white/80 transition-colors"
+                    >
                       {/* Desktop Layout */}
                       <div className="hidden md:flex justify-between items-center">
                         <span>{market.name}</span>
@@ -400,25 +321,7 @@ export function AssetTable({
 
             {/* Asset Details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-500/15 rounded-lg p-4">
-                <p className="text-white/60 text-sm">Liquidity Total TVL</p>
-                <p className="text-white text-xl font-bold">
-                  {selectedAsset.tvl}
-                </p>
-              </div>
-              <div className="bg-gray-500/15 rounded-lg p-4">
-                <p className="text-white/60 text-sm">24h Volume</p>
-                <p className="text-blue-400 text-xl font-bold">
-                  {selectedAsset.volume24h}
-                </p>
-              </div>
-              <div className="bg-gray-500/15 rounded-lg p-4">
-                <p className="text-white/60 text-sm">Long Yield APY (YT)</p>
-                <p className="text-blue-400 text-xl font-bold">
-                  {selectedAsset.bestLongYieldAPY}%
-                </p>
-              </div>
-              <div className="bg-gray-500/15 rounded-lg p-4">
+              <div className="bg-gray-500/15 rounded-xl p-4">
                 <p className="text-white/60 text-sm">Best Fixed (PT)</p>
                 <p className="text-blue-400 text-xl font-bold">
                   {selectedAsset.bestFixedAPY}%
@@ -427,23 +330,22 @@ export function AssetTable({
             </div>
 
             {/* Additional Info */}
-            <div className="bg-gray-500/15 rounded-lg p-4">
+            <div className="bg-gray-500/15 rounded-xl p-4">
               <h4 className="text-white font-semibold mb-2">
                 Market Information
               </h4>
               <div className="space-y-1 text-white/70 text-sm">
                 <p>Total Pools: {selectedAsset.pools}</p>
                 <p>Category: {selectedAsset.category}</p>
-                <p>Average APY: {selectedAsset.apy}</p>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="flex-1 bg-blue-900 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors">
-                Trade
+              <button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 py-3 px-6 hover:from-blue-700 text-white font-medium text-lg rounded-xl shadow-lg  transition-all duration-300">
+                Stake
               </button>
-              <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors">
+              <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-xl transition-colors">
                 View More
               </button>
             </div>
