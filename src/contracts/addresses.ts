@@ -1,10 +1,29 @@
 import { Address } from "viem";
 
+const requiredAddresses = {
+  SUPERCLUSTER_ADDRESS: process.env.NEXT_PUBLIC_SUPERCLUSTER_ADDRESS,
+  PILOT_ADDRESS: process.env.NEXT_PUBLIC_PILOT_ADDRESS,
+  MOCK_USDC_ADDRESS: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS,
+  FAUCET_ADDRESS: process.env.NEXT_PUBLIC_FAUCET_ADDRESS,
+};
+
+// Check for missing addresses
+const missingAddresses = Object.entries(requiredAddresses)
+  .filter(([, value]) => !value)
+  .map(([key]) => `NEXT_PUBLIC_${key}`);
+
+if (missingAddresses.length > 0) {
+  throw new Error(
+    `Missing required contract addresses: ${missingAddresses.join(", ")}`
+  );
+}
+
 // Base Sepolia Testnet - Primary network
 export const CONTRACTS = {
-  superCluster: "0xD50f33e06477700044355E9da7893c51e37822AF" as Address,
-  pilot: "0x388a7F7685E0E3BCc04318b17cb21014617C42Bb" as Address,
-  mockUSDC: "0xB4d5B455Da31325B86e4705a69734A153dEa1C34" as Address,
+  superCluster: process.env.NEXT_PUBLIC_SUPERCLUSTER_ADDRESS as Address,
+  pilot: process.env.NEXT_PUBLIC_PILOT_ADDRESS as Address,
+  mockUSDC: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS as Address,
+  faucet: process.env.NEXT_PUBLIC_FAUCET_ADDRESS as Address,
 } as const;
 
 export const TOKEN_DECIMALS = {
