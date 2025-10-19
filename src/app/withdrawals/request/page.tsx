@@ -37,11 +37,6 @@ export default function LidoWithdrawals() {
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
 
-  // Get ETH balance
-  const { data: ethBalance } = useBalance({
-    address: address,
-  });
-
   // TODO: Get stETH balance from contract
   const stETHBalance = "0.0";
 
@@ -163,8 +158,7 @@ export default function LidoWithdrawals() {
                     activeTab === "request"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}
-                >
+                  }`}>
                   {activeTab === "request" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl"></div>
                   )}
@@ -176,8 +170,7 @@ export default function LidoWithdrawals() {
                     activeTab === "claim"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}
-                >
+                  }`}>
                   {activeTab === "claim" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl"></div>
                   )}
@@ -213,8 +206,7 @@ export default function LidoWithdrawals() {
                         <button
                           onClick={handleMaxClick}
                           disabled={!isConnected}
-                          className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+                          className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                           MAX
                         </button>
                       </div>
@@ -235,8 +227,7 @@ export default function LidoWithdrawals() {
                           selectedMethod === "superCluster"
                             ? "border-blue-500 bg-blue-900/20"
                             : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
-                        }`}
-                      >
+                        }`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Clock className="w-5 h-5 text-blue-400" />
@@ -249,8 +240,7 @@ export default function LidoWithdrawals() {
                               selectedMethod === "superCluster"
                                 ? "border-blue-400"
                                 : "border-slate-500"
-                            }`}
-                          >
+                            }`}>
                             {selectedMethod === "superCluster" && (
                               <div className="w-2.5 h-2.5 bg-blue-400 rounded-full"></div>
                             )}
@@ -280,8 +270,7 @@ export default function LidoWithdrawals() {
                           selectedMethod === "dex"
                             ? "border-cyan-500 bg-cyan-900/20"
                             : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
-                        }`}
-                      >
+                        }`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Zap className="w-5 h-5 text-cyan-400" />
@@ -294,8 +283,7 @@ export default function LidoWithdrawals() {
                               selectedMethod === "dex"
                                 ? "border-cyan-400"
                                 : "border-slate-500"
-                            }`}
-                          >
+                            }`}>
                             {selectedMethod === "dex" && (
                               <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full"></div>
                             )}
@@ -347,8 +335,7 @@ export default function LidoWithdrawals() {
                           </span>
                           <button
                             onClick={handleCopyAddress}
-                            className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
-                          >
+                            className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
                             <span>{formatAddress(address)}</span>
                             {copied ? (
                               <Check className="w-3.5 h-3.5 text-green-400" />
@@ -466,8 +453,7 @@ export default function LidoWithdrawals() {
                     <Button
                       onClick={handleWithdraw}
                       disabled={!amount || parseFloat(amount) <= 0}
-                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                    >
+                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
                       {selectedMethod === "superCluster"
                         ? "Request Withdrawal"
                         : "Swap on DEX"}
@@ -476,8 +462,7 @@ export default function LidoWithdrawals() {
                     <Button
                       onClick={handleConnect}
                       disabled={isConnecting}
-                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
                       {isConnecting ? "Connecting..." : "Connect Wallet"}
                     </Button>
                   )}
@@ -554,14 +539,12 @@ export default function LidoWithdrawals() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
-                    >
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
-                      >
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>

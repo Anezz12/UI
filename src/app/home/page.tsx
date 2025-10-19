@@ -263,7 +263,7 @@ export default function Home() {
                 "Rebasing token mechanism",
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4">
-                  <div className="w-6 h-60 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-md font-semibold text-white">
                       {i + 1}
                     </span>
@@ -285,7 +285,7 @@ export default function Home() {
                 "Modular architecture for expansion",
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4">
-                  <div className="w-6 h-60 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-md font-semibold text-white">
                       {i + 1}
                     </span>
