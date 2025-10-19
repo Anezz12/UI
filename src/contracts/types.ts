@@ -28,3 +28,29 @@ export interface StakingStats {
   apr: string;
   marketCap: string;
 }
+
+export interface Market {
+  id: string;
+  name: string;
+  tvl: string;
+  apy: string;
+}
+
+export interface PilotAsset {
+  id: string;
+  name: string;
+  symbol: string;
+  chain: string;
+  logo: string;
+  pools: number;
+  bestFixedAPY: number;
+  isactive: boolean;
+  marketsCount: number;
+  category: string;
+  totalLiquidity: number;
+  focus: string;
+  address: string;
+  status: string;
+  description: string;
+  markets: Market[];
+}

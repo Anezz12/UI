@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { CONTRACTS } from "@/contracts/addresses";
 import { FiltersBar } from "@/components/Home/FiltersBar";
 import { AssetTable } from "@/components/Home/AssetTable";
+import { PilotAsset } from "@/contracts/types";
 
 const STORAGE_KEY = "supercluster.selectedPilot";
 
-const PILOT_ASSETS = [
+const PILOT_ASSETS: readonly PilotAsset[] = [
   {
     id: "atlas-core",
     name: "Atlas Core Pilot",
@@ -17,6 +18,7 @@ const PILOT_ASSETS = [
     category: "Core",
     totalLiquidity: 1420000,
     pools: 3,
+    isactive: true,
     bestFixedAPY: 7.9,
     marketsCount: 3,
     markets: [
@@ -54,6 +56,7 @@ const PILOT_ASSETS = [
     category: "Growth",
     totalLiquidity: 820000,
     pools: 4,
+    isactive: false,
     bestFixedAPY: 12.4,
     marketsCount: 4,
     markets: [
@@ -97,6 +100,7 @@ const PILOT_ASSETS = [
     category: "Defensive",
     totalLiquidity: 2050000,
     pools: 2,
+    isactive: false,
     bestFixedAPY: 5.1,
     marketsCount: 2,
     markets: [
@@ -121,8 +125,6 @@ const PILOT_ASSETS = [
   },
 ] as const;
 
-type PilotAsset = (typeof PILOT_ASSETS)[number];
-
 export default function OperatorPage() {
   const [selectedCategory, setSelectedCategory] = useState("All Pilots");
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +138,9 @@ export default function OperatorPage() {
     if (typeof window === "undefined") return;
     const savedAddress = window.localStorage.getItem(STORAGE_KEY);
     if (savedAddress) {
-      const match = PILOT_ASSETS.find((pilot) => pilot.address === savedAddress);
+      const match = PILOT_ASSETS.find(
+        (pilot: PilotAsset) => pilot.address === savedAddress
+      );
       if (match) {
         setSelectedPilotId(match.id);
       }
@@ -154,7 +158,7 @@ export default function OperatorPage() {
   };
 
   const filteredPilots = useMemo<PilotAsset[]>(() => {
-    return PILOT_ASSETS.filter((pilot) => {
+    return PILOT_ASSETS.filter((pilot: PilotAsset) => {
       const matchesCategory =
         selectedCategory === "All Pilots" ||
         pilot.category === selectedCategory;
@@ -170,7 +174,9 @@ export default function OperatorPage() {
   }, [selectedCategory, searchQuery]);
 
   const activePilot = useMemo<PilotAsset | undefined>(() => {
-    return PILOT_ASSETS.find((pilot) => pilot.id === selectedPilotId);
+    return PILOT_ASSETS.find(
+      (pilot: PilotAsset) => pilot.id === selectedPilotId
+    );
   }, [selectedPilotId]);
 
   const handleSelectPilot = (pilot: PilotAsset) => {
@@ -209,10 +215,8 @@ export default function OperatorPage() {
               {activePilot.name}
             </span>{" "}
             ({activePilot.symbol}) at{" "}
-            <span className="font-mono text-white">
-              {activePilot.address}
-            </span>
-            . Review the pilot’s strategies before confirming new positions.
+            <span className="font-mono text-white">{activePilot.address}</span>.
+            Review the pilot’s strategies before confirming new positions.
           </p>
         </div>
       )}
