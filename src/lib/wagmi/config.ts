@@ -1,19 +1,17 @@
 import { createConfig, http } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
 import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
 import { createWeb3Modal } from "@web3modal/wagmi/react";
+import type { Chain } from "viem";
 
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
-
 if (!projectId) {
   throw new Error("NEXT_PUBLIC_PROJECT_ID is not set");
 }
 
-// Define Base Sepolia
-const baseSepolia = {
+// Base Sepolia - Only network we support
+export const baseSepolia = {
   id: 84532,
   name: "Base Sepolia",
-  network: "base-sepolia",
   nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
     default: { http: ["https://sepolia.base.org"] },
@@ -26,46 +24,28 @@ const baseSepolia = {
     },
   },
   testnet: true,
-};
-
-// Define Base Mainnet
-const base = {
-  id: 8453,
-  name: "Base",
-  network: "base",
-  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: {
-    default: { http: ["https://mainnet.base.org"] },
-    public: { http: ["https://mainnet.base.org"] },
-  },
-  blockExplorers: {
-    default: {
-      name: "Base Explorer",
-      url: "https://basescan.org",
-    },
-  },
-};
+} as const satisfies Chain;
 
 export const config = createConfig({
-  chains: [mainnet, sepolia, baseSepolia, base],
+  chains: [baseSepolia],
   connectors: [
     injected(),
     walletConnect({ projectId }),
-    coinbaseWallet({ appName: "Super Cluster" }),
+    coinbaseWallet({ appName: "SuperCluster" }),
   ],
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
     [baseSepolia.id]: http(),
-    [base.id]: http(),
   },
 });
 
-// Setup Web3Modal
 createWeb3Modal({
   wagmiConfig: config,
   projectId,
   enableAnalytics: true,
+  defaultChain: baseSepolia,
+  themeVariables: {
+    "--w3m-accent": "#3b82f6",
+  },
 });
 
 export { projectId };
