@@ -15,44 +15,50 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount } from "wagmi";
+import { useUSDCBalance, useSTokenBalance } from "@/hooks/useTokenBalance";
+import { useStaking } from "@/hooks/useStaking";
 
 export default function StakePage() {
-  const [ethAmount, setEthAmount] = useState("");
+  const [usdcAmount, setUsdcAmount] = useState("");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
 
-  const { data: ethBalance } = useBalance({
-    address: address,
-  });
+  const { formatted: usdcBalance, refetch: refetchUSDC } = useUSDCBalance();
+  const { formatted: sUSDCBalance, refetch: refetchSToken } =
+    useSTokenBalance();
 
-  console.log("Address:", address);
-  console.log("Balance:", ethBalance);
+  // const { address, isConnected, isConnecting, chainId } = useAccount();
+  // const {
+  //   formatted: usdcBalance,
+  //   refetch: refetchUSDC,
+  //   raw: rawUSDCBalance,
+  // } = useUSDCBalance();
+  // const {
+  //   formatted: sUSDCBalance,
+  //   refetch: refetchSToken,
+  //   balance: rawSUSDCBalance,
+  //   sTokenAddress,
+  // } = useSTokenBalance();
 
-  // TODO: Get sUSDC balance from contract
-  const stETHBalance = "0.0";
+  const { stake, isSubmitting, error, resetError } = useStaking();
 
   const handleMaxClick = () => {
-    if (ethBalance) {
-      setEthAmount(ethBalance.formatted);
-    }
+    setUsdcAmount(usdcBalance);
   };
 
   const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    if (!address) return;
+    navigator.clipboard.writeText(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
+  const formatAddress = (addr: string) =>
+    `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
   const stats = {
     apr: "3.3%",
@@ -63,28 +69,54 @@ export default function StakePage() {
 
   const handleConnect = async () => {
     try {
-      setError(null);
+      resetError();
       await open();
-    } catch (error) {
-      setError("Failed to connect wallet. Please try again.");
-      console.error("Wallet connection error:", error);
+    } catch (err) {
+      console.error("Connection error:", err);
     }
   };
 
   const handleStake = async () => {
-    if (!ethAmount || parseFloat(ethAmount) <= 0) {
-      setError("Please enter a valid amount");
-      return;
-    }
-
-    try {
-      setError(null);
-      console.log("Staking", ethAmount, "USDC");
-    } catch (error) {
-      setError("Failed to stake. Please try again.");
-      console.error("Stake error:", error);
+    const success = await stake(usdcAmount);
+    if (success) {
+      setUsdcAmount("");
+      setTimeout(() => {
+        refetchUSDC();
+        refetchSToken();
+      }, 2000);
     }
   };
+
+  // useEffect(() => {
+  //   console.log("=== WALLET INFO ===");
+  //   console.log("Address:", address);
+  //   console.log("Is Connected:", isConnected);
+  //   console.log("Is Connecting:", isConnecting);
+  //   console.log("Chain ID:", chainId);
+  //   console.log(
+  //     "Chain Name:",
+  //     chainId === 84532
+  //       ? "Base Sepolia"
+  //       : chainId === 11155111
+  //         ? "Sepolia"
+  //         : "Unknown"
+  //   );
+  //   console.log("USDC Balance (formatted):", usdcBalance);
+  //   console.log("USDC Balance (raw):", rawUSDCBalance?.toString());
+  //   console.log("sUSDC Balance (formatted):", sUSDCBalance);
+  //   console.log("sUSDC Balance (raw):", rawSUSDCBalance?.toString());
+  //   console.log("sToken Address:", sTokenAddress);
+  //   console.log("==================");
+  // }, [
+  //   address,
+  //   isConnected,
+  //   chainId,
+  //   usdcBalance,
+  //   sUSDCBalance,
+  //   rawUSDCBalance,
+  //   rawSUSDCBalance,
+  //   sTokenAddress,
+  // ]);
 
   const faqItems = [
     {
@@ -128,7 +160,7 @@ export default function StakePage() {
   return (
     <div className="min-h-screen text-white">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Hero Section - Enhanced */}
+        {/* Hero Section */}
         <div className="text-center mb-12 relative">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6 backdrop-blur-sm">
             <Sparkles className="w-4 h-4 text-blue-400" />
@@ -181,34 +213,22 @@ export default function StakePage() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-xl">
-                        Ξ
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-sm">
+                        USDC
                       </div>
                       <Input
                         type="number"
-                        placeholder="USDC Amount"
-                        value={ethAmount}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d*\.?\d*$/.test(value)) {
-                            setEthAmount(value);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "-") {
-                            e.preventDefault();
-                          }
-                        }}
-                        min="0"
-                        step="any"
-                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 appearance-none"
+                        placeholder="0.00"
+                        value={usdcAmount}
+                        onChange={(e) => setUsdcAmount(e.target.value)}
+                        disabled={!isConnected || isSubmitting}
+                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 disabled:opacity-50"
                       />
                     </div>
                     <button
                       onClick={handleMaxClick}
-                      disabled={!isConnected}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors"
-                    >
+                      disabled={!isConnected || isSubmitting}
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       MAX
                     </button>
                   </div>
@@ -228,10 +248,7 @@ export default function StakePage() {
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-white">
-                        {ethBalance
-                          ? parseFloat(ethBalance.formatted).toFixed(4)
-                          : "0.0"}{" "}
-                        USDC
+                        {usdcBalance} USDC
                       </div>
                     </div>
 
@@ -244,7 +261,7 @@ export default function StakePage() {
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-white">
-                        {stETHBalance} sUSDC
+                        {sUSDCBalance} sUSDC
                       </div>
                     </div>
 
@@ -255,8 +272,7 @@ export default function StakePage() {
                       </span>
                       <button
                         onClick={handleCopyAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
-                      >
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
                         <span>{formatAddress(address)}</span>
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
@@ -266,12 +282,12 @@ export default function StakePage() {
                       </button>
                     </div>
 
-                    {/* superCluster APR */}
+                    {/* APR */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-blue-400" />
                         <span className="text-xs text-slate-400 font-medium">
-                          superCluster APR
+                          sUSDC APR
                         </span>
                         <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
                       </div>
@@ -290,11 +306,11 @@ export default function StakePage() {
                 </label>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-lg">
-                      s
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-sm">
+                      sUSDC
                     </div>
                     <div className="text-3xl font-semibold text-white">
-                      {ethAmount || "0.00"} sUSDC
+                      {usdcAmount || "0.00"} sUSDC
                     </div>
                   </div>
                 </div>
@@ -307,22 +323,22 @@ export default function StakePage() {
                 </div>
               )}
 
-              {/* Connect Button */}
+              {/* Connect/Stake Button */}
               {isConnected ? (
                 <Button
                   onClick={handleStake}
-                  disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40"
-                >
-                  Stake Now
+                  disabled={
+                    !usdcAmount || parseFloat(usdcAmount) <= 0 || isSubmitting
+                  }
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                  {isSubmitting ? "Staking..." : "Stake Now"}
                 </Button>
               ) : (
                 <Button
                   onClick={handleConnect}
-                  disabled={isConnected}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40"
-                >
-                  Connect Wallet
+                  disabled={isConnecting}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               )}
 
@@ -336,7 +352,7 @@ export default function StakePage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Network Fee</span>
-                  <span className="text-white font-medium">$0.92</span>
+                  <span className="text-white font-medium">~$0.92</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400 flex items-center gap-1">
@@ -348,73 +364,65 @@ export default function StakePage() {
               </div>
             </div>
 
-            {/* Info Banner */}
-            <div className="p-5 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-2xl">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Info className="w-5 h-5 text-blue-400" />
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <span className="text-sm text-slate-400">Total Staked</span>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">
-                    Why Stake with Us?
-                  </h3>
-                  <p className="text-sm text-slate-300 leading-relaxed">
-                    Stake USDC and receive sUSDC tokens that represent your
-                    staked USDC plus all accrued rewards. Your sUSDC balance
-                    automatically increases daily, and you can use it across
-                    DeFi while earning staking yields.
-                  </p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.totalStaked}
+                </p>
+              </div>
+
+              <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <span className="text-sm text-slate-400">Active Stakers</span>
                 </div>
+                <p className="text-2xl font-bold text-white">{stats.stakers}</p>
+              </div>
+
+              <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                    <Award className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <span className="text-sm text-slate-400">Market Cap</span>
+                </div>
+                <p className="text-2xl font-bold text-white">
+                  {stats.marketCap}
+                </p>
               </div>
             </div>
 
-            {/* Statistics Grid */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-white">
-                  Protocol Statistics
-                </h3>
-                <a
-                  href="#"
-                  className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1 transition-colors"
-                >
-                  View on Etherscan
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
-                  <div className="flex items-center gap-1 mb-2">
-                    <span className="text-slate-400 text-xs">APR</span>
-                    <Info className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                  <div className="text-3xl font-bold text-blue-400">
-                    {stats.apr}
-                  </div>
+            {/* Info Banner */}
+            <div className="p-6 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-2xl">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Info className="w-6 h-6 text-blue-400" />
                 </div>
-                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
-                  <span className="text-slate-400 text-xs block mb-2">
-                    Total Staked
-                  </span>
-                  <div className="text-2xl font-bold text-white truncate">
-                    {stats.totalStaked}
-                  </div>
-                </div>
-                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
-                  <span className="text-slate-400 text-xs block mb-2">
-                    Stakers
-                  </span>
-                  <div className="text-2xl font-bold text-cyan-400">
-                    {stats.stakers}
-                  </div>
-                </div>
-                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm">
-                  <span className="text-slate-400 text-xs block mb-2">
-                    Market Cap
-                  </span>
-                  <div className="text-xl font-bold text-white truncate">
-                    {stats.marketCap}
-                  </div>
+                <div>
+                  <h3 className="font-bold text-white text-lg mb-2">
+                    How does it work?
+                  </h3>
+                  <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                    When you stake USDC, you receive sUSDC tokens that represent
+                    your staked USDC plus all accrued rewards. Your sUSDC
+                    balance automatically increases daily as you earn staking
+                    rewards.
+                  </p>
+                  <a
+                    href="#"
+                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+                    Learn more about liquid staking
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
                 </div>
               </div>
             </div>
@@ -434,14 +442,12 @@ export default function StakePage() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
-                    >
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
-                      >
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>
