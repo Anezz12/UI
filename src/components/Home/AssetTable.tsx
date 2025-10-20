@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import { PilotAsset } from "@/contracts/types";
 import { AssetModal } from "../partial/AssetModal";
+import Link from "next/link";
 
 interface AssetTableProps {
   assets: PilotAsset[];
@@ -89,7 +90,8 @@ export function AssetTable({
           {/* Name Column */}
           <div
             className="group cursor-pointer flex items-center text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("name")}>
+            onClick={() => handleSort("name")}
+          >
             <span className="text-xs font-semibold uppercase tracking-wider">
               Asset Name
             </span>
@@ -99,7 +101,8 @@ export function AssetTable({
           {/* Markets Column */}
           <div
             className="group cursor-pointer flex items-center justify-start text-gray-400 hover:text-gray-200 transition-colors"
-            onClick={() => handleSort("markets")}>
+            onClick={() => handleSort("markets")}
+          >
             <span className="text-xs font-semibold uppercase tracking-wider">
               Markets
             </span>
@@ -131,7 +134,8 @@ export function AssetTable({
                       ? "bg-cyan-500/15 border border-cyan-500/40 cursor-pointer"
                       : "bg-gray-500/15 hover:bg-gray-500/20 border border-transparent cursor-pointer"
                 }`}
-                onClick={() => !isDisabled && handleSelectPilot(asset)}>
+                onClick={() => !isDisabled && handleSelectPilot(asset)}
+              >
                 {/* Icon & Name */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -187,7 +191,8 @@ export function AssetTable({
                         ? "cursor-not-allowed opacity-50"
                         : "hover:bg-white/10 cursor-pointer"
                     }`}
-                    title={isDisabled ? "Pilot Inactive" : "View Details"}>
+                    title={isDisabled ? "Pilot Inactive" : "View Details"}
+                  >
                     <ExternalLink className="h-4 w-4 text-white/60" />
                   </button>
                   {asset.markets && asset.markets.length > 0 && (
@@ -210,7 +215,8 @@ export function AssetTable({
                           : isExpanded
                             ? "Collapse"
                             : "Expand"
-                      }>
+                      }
+                    >
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4 text-white/60" />
                       ) : (
@@ -230,7 +236,8 @@ export function AssetTable({
                       ? "bg-cyan-500/15 border border-cyan-500/40 cursor-pointer"
                       : "bg-gray-500/15 cursor-pointer"
                 }`}
-                onClick={() => !isDisabled && handleSelectPilot(asset)}>
+                onClick={() => !isDisabled && handleSelectPilot(asset)}
+              >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3 flex-1">
@@ -280,7 +287,8 @@ export function AssetTable({
                       isDisabled
                         ? "cursor-not-allowed opacity-50"
                         : "hover:bg-white/10 cursor-pointer"
-                    }`}>
+                    }`}
+                  >
                     <ExternalLink className="h-4 w-4 text-white/60" />
                   </button>
                 </div>
@@ -337,7 +345,8 @@ export function AssetTable({
                       isDisabled
                         ? "bg-gray-800/20 cursor-not-allowed opacity-50"
                         : "bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer"
-                    }`}>
+                    }`}
+                  >
                     {isExpanded ? "Hide Markets" : "Show Markets"}
                     {isExpanded ? (
                       <ChevronUp className="h-4 w-4" />
@@ -357,7 +366,8 @@ export function AssetTable({
                   {asset.markets.map((market) => (
                     <div
                       key={market.id}
-                      className="bg-gray-700/30 rounded-lg p-3 flex items-center justify-between hover:bg-gray-700/40 transition-colors">
+                      className="bg-gray-700/30 rounded-lg p-3 flex items-center justify-between hover:bg-gray-700/40 transition-colors"
+                    >
                       <div className="flex-1">
                         <div className="font-medium text-white text-sm mb-1">
                           {market.name}
@@ -441,7 +451,8 @@ export function AssetTable({
                 <div
                   className={`font-semibold ${
                     selectedAsset.isactive ? "text-green-400" : "text-red-400"
-                  }`}>
+                  }`}
+                >
                   {selectedAsset.status}
                 </div>
               </div>
@@ -487,24 +498,28 @@ export function AssetTable({
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  if (selectedAsset.isactive) {
-                    handleSelectPilot(selectedAsset);
-                    closeModal();
-                  }
-                }}
-                disabled={!selectedAsset.isactive}
-                className={`flex-1 font-medium py-3 px-6 rounded-lg transition-colors ${
-                  selectedAsset.isactive
-                    ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                    : "bg-gray-700 text-gray-500 cursor-not-allowed"
-                }`}>
-                {selectedAsset.isactive ? "Select Pilot" : "Pilot Inactive"}
-              </button>
+              <Link href="/deposit">
+                <button
+                  onClick={() => {
+                    if (selectedAsset.isactive) {
+                      handleSelectPilot(selectedAsset);
+                      closeModal();
+                    }
+                  }}
+                  disabled={!selectedAsset.isactive}
+                  className={`flex-1 font-medium py-3 px-6 rounded-lg transition-colors ${
+                    selectedAsset.isactive
+                      ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                      : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  {selectedAsset.isactive ? "Select Pilot" : "Pilot Inactive"}
+                </button>
+              </Link>
               <button
                 onClick={closeModal}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors">
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              >
                 Close
               </button>
             </div>
