@@ -1,13 +1,29 @@
 import { Address } from "viem";
 
+const requiredAddresses = {
+  SUPERCLUSTER_ADDRESS: process.env.NEXT_PUBLIC_SUPERCLUSTER_ADDRESS,
+  PILOT_ADDRESS: process.env.NEXT_PUBLIC_PILOT_ADDRESS,
+  MOCK_USDC_ADDRESS: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS,
+  FAUCET_ADDRESS: process.env.NEXT_PUBLIC_FAUCET_ADDRESS,
+};
+
+// Check for missing addresses
+const missingAddresses = Object.entries(requiredAddresses)
+  .filter(([, value]) => !value)
+  .map(([key]) => `NEXT_PUBLIC_${key}`);
+
+if (missingAddresses.length > 0) {
+  throw new Error(
+    `Missing required contract addresses: ${missingAddresses.join(", ")}`
+  );
+}
+
 // Base Sepolia Testnet - Primary network
 export const CONTRACTS = {
-  superCluster: "0x529A994B65A42d75dF23C254ff67eB6Fb73c3b33" as Address,
-  pilot: "0x378274002f6E6230c6b06D01c85032D95760902E" as Address,
-  mockUSDC: "0xB34882512FC16e74939fc75f6C4b72d827b66f56" as Address,
-  sToken: "0x21644Ec0c17733ec6cc251519322627a31f11d54" as Address,
-  wsToken: "0x4fAbA08B055d192a7Cd9c70dCBfb84e390c32d65" as Address,
-  faucet: "0x39697028fEe49981c79D8ED9753bEB12f6a97E2A" as Address,
+  superCluster: process.env.NEXT_PUBLIC_SUPERCLUSTER_ADDRESS as Address,
+  pilot: process.env.NEXT_PUBLIC_PILOT_ADDRESS as Address,
+  mockUSDC: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS as Address,
+  faucet: process.env.NEXT_PUBLIC_FAUCET_ADDRESS as Address,
 } as const;
 
 export const TOKEN_DECIMALS = {

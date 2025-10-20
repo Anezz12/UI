@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import {
   ChevronDown,
@@ -8,34 +9,17 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { AssetModal } from "../partial/AssetModal";
 import Image from "next/image";
-
-interface Market {
-  id: string;
-  name: string;
-  tvl: string;
-  apy: string;
-}
-
-interface Asset {
-  id: string;
-  name: string;
-  symbol: string;
-  chain: string;
-  logo: string;
-  category: string;
-  totalLiquidity: number;
-  pools: number;
-  bestFixedAPY: number;
-  markets: Market[];
-  marketsCount: number;
-}
+import { PilotAsset } from "@/contracts/types";
+import { AssetModal } from "../partial/AssetModal";
+import Link from "next/link";
 
 interface AssetTableProps {
-  assets: Asset[];
+  assets: PilotAsset[];
   expandedAssets: string[];
   toggleAssetExpansion: (assetId: string) => void;
+  selectedPilotId?: string;
+  onSelectPilot?: (asset: PilotAsset) => void;
 }
 
 type SortField = "name" | "markets" | "tvl" | "bestLong" | "bestFixed";
@@ -45,13 +29,15 @@ export function AssetTable({
   assets,
   expandedAssets,
   toggleAssetExpansion,
+  selectedPilotId,
+  onSelectPilot,
 }: AssetTableProps) {
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<PilotAsset | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  const openModal = (asset: Asset) => {
+  const openModal = (asset: PilotAsset) => {
     setSelectedAsset(asset);
     setIsModalOpen(true);
   };
@@ -59,6 +45,13 @@ export function AssetTable({
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedAsset(null);
+  };
+
+  const handleSelectPilot = (asset: PilotAsset) => {
+    if (!asset.isactive) {
+      return;
+    }
+    onSelectPilot?.(asset);
   };
 
   const handleSort = (field: SortField) => {
@@ -126,12 +119,23 @@ export function AssetTable({
 
         {/* Table Body */}
         {assets.map((asset) => {
+          const isSelected = selectedPilotId === asset.id;
           const isExpanded = expandedAssets.includes(asset.id);
+          const isDisabled = !asset.isactive;
 
           return (
             <div key={asset.id} className="space-y-2">
               {/* Desktop Row */}
-              <div className="hidden md:grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center bg-gray-500/15 hover:bg-gray-500/20 rounded-md px-6 py-3 gap-4 shadow transition-colors">
+              <div
+                className={`hidden md:grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center rounded-md px-6 py-3 gap-4 shadow transition-colors ${
+                  isDisabled
+                    ? "bg-gray-500/5 opacity-50 cursor-not-allowed"
+                    : isSelected
+                      ? "bg-cyan-500/15 border border-cyan-500/40 cursor-pointer"
+                      : "bg-gray-500/15 hover:bg-gray-500/20 border border-transparent cursor-pointer"
+                }`}
+                onClick={() => !isDisabled && handleSelectPilot(asset)}
+              >
                 {/* Icon & Name */}
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden">
@@ -143,7 +147,7 @@ export function AssetTable({
                       width={24}
                     />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-white text-base">
                       {asset.name}
                     </span>
@@ -153,6 +157,15 @@ export function AssetTable({
                     <span className="bg-purple-900/60 text-purple-400 px-2 py-0.5 rounded text-xs">
                       {asset.chain}
                     </span>
+                    {isDisabled ? (
+                      <span className="bg-red-900/60 text-red-400 px-2 py-0.5 rounded text-xs font-semibold">
+                        Inactive
+                      </span>
+                    ) : (
+                      <span className="bg-blue-900/60 text-blue-400 px-2 py-0.5 rounded text-xs font-semibold">
+                        Active
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -166,17 +179,43 @@ export function AssetTable({
                 {/* Actions */}
                 <div className="flex items-center gap-2 justify-start">
                   <button
-                    onClick={() => openModal(asset)}
-                    className="hover:bg-white/10 p-2 rounded-xl transition-colors"
-                    title="View Details"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isDisabled) {
+                        openModal(asset);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`p-2 rounded-xl transition-colors ${
+                      isDisabled
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-white/10 cursor-pointer"
+                    }`}
+                    title={isDisabled ? "Pilot Inactive" : "View Details"}
                   >
                     <ExternalLink className="h-4 w-4 text-white/60" />
                   </button>
                   {asset.markets && asset.markets.length > 0 && (
                     <button
-                      onClick={() => toggleAssetExpansion(asset.id)}
-                      className="hover:bg-white/10 p-2 rounded-xl transition-colors"
-                      title={isExpanded ? "Collapse" : "Expand"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isDisabled) {
+                          toggleAssetExpansion(asset.id);
+                        }
+                      }}
+                      disabled={isDisabled}
+                      className={`p-2 rounded-xl transition-colors ${
+                        isDisabled
+                          ? "cursor-not-allowed opacity-50"
+                          : "hover:bg-white/10 cursor-pointer"
+                      }`}
+                      title={
+                        isDisabled
+                          ? "Pilot Inactive"
+                          : isExpanded
+                            ? "Collapse"
+                            : "Expand"
+                      }
                     >
                       {isExpanded ? (
                         <ChevronUp className="h-4 w-4 text-white/60" />
@@ -189,7 +228,16 @@ export function AssetTable({
               </div>
 
               {/* Mobile Card */}
-              <div className="md:hidden bg-gray-500/15 rounded-xl p-4 shadow">
+              <div
+                className={`md:hidden rounded-xl p-4 shadow ${
+                  isDisabled
+                    ? "bg-gray-500/5 opacity-50 cursor-not-allowed"
+                    : isSelected
+                      ? "bg-cyan-500/15 border border-cyan-500/40 cursor-pointer"
+                      : "bg-gray-500/15 cursor-pointer"
+                }`}
+                onClick={() => !isDisabled && handleSelectPilot(asset)}
+              >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3 flex-1">
@@ -211,14 +259,35 @@ export function AssetTable({
                           {asset.symbol}
                         </span>
                       </div>
-                      <span className="bg-purple-900/60 text-purple-400 px-2 py-0.5 rounded text-xs inline-block w-fit">
-                        {asset.chain}
-                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="bg-purple-900/60 text-purple-400 px-2 py-0.5 rounded text-xs inline-block w-fit">
+                          {asset.chain}
+                        </span>
+                        {isDisabled ? (
+                          <span className="bg-red-900/60 text-red-400 px-2 py-0.5 rounded text-xs font-semibold">
+                            Inactive
+                          </span>
+                        ) : (
+                          <span className="bg-blue-900/60 text-blue-400 px-2 py-0.5 rounded text-xs font-semibold">
+                            Active
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button
-                    onClick={() => openModal(asset)}
-                    className="hover:bg-white/10 p-2 rounded-xl transition-colors flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isDisabled) {
+                        openModal(asset);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`p-2 rounded-xl transition-colors flex-shrink-0 ${
+                      isDisabled
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-white/10 cursor-pointer"
+                    }`}
                   >
                     <ExternalLink className="h-4 w-4 text-white/60" />
                   </button>
@@ -226,25 +295,57 @@ export function AssetTable({
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="bg-gray-800/30 rounded-xl p-2.5">
-                    <p className="text-gray-400 text-xs mb-1">Markets</p>
-                    <p className="text-blue-400 text-sm font-medium">
+                  <div className="bg-gray-800/40 rounded-lg p-2.5">
+                    <div className="text-white/50 text-xs mb-0.5">Markets</div>
+                    <div className="text-white font-semibold text-sm">
                       {asset.marketsCount || asset.pools}
-                    </p>
+                    </div>
                   </div>
-                  <div className="bg-gray-800/30 rounded-xl p-2.5">
-                    <p className="text-gray-400 text-xs mb-1">Fixed APY (PT)</p>
-                    <p className="text-blue-500 text-sm font-medium">
+                  <div className="bg-gray-800/40 rounded-lg p-2.5">
+                    <div className="text-white/50 text-xs mb-0.5">TVL</div>
+                    <div className="text-white font-semibold text-sm">
+                      $
+                      {(asset.totalLiquidity / 1000000).toLocaleString(
+                        undefined,
+                        {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }
+                      )}
+                      M
+                    </div>
+                  </div>
+                  <div className="bg-gray-800/40 rounded-lg p-2.5">
+                    <div className="text-white/50 text-xs mb-0.5">
+                      Best Fixed APY
+                    </div>
+                    <div className="text-green-400 font-semibold text-sm">
                       {asset.bestFixedAPY}%
-                    </p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-800/40 rounded-lg p-2.5">
+                    <div className="text-white/50 text-xs mb-0.5">Category</div>
+                    <div className="text-white font-semibold text-sm">
+                      {asset.category}
+                    </div>
                   </div>
                 </div>
 
                 {/* Expand Button */}
                 {asset.markets && asset.markets.length > 0 && (
                   <button
-                    onClick={() => toggleAssetExpansion(asset.id)}
-                    className="w-full bg-gray-800/40 hover:bg-gray-800/60 py-2 rounded-xl transition-colors flex items-center justify-center gap-2 text-white/80 text-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isDisabled) {
+                        toggleAssetExpansion(asset.id);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`w-full py-2 rounded-xl transition-colors flex items-center justify-center gap-2 text-white/80 text-sm ${
+                      isDisabled
+                        ? "bg-gray-800/20 cursor-not-allowed opacity-50"
+                        : "bg-gray-800/40 hover:bg-gray-800/60 cursor-pointer"
+                    }`}
                   >
                     {isExpanded ? "Hide Markets" : "Show Markets"}
                     {isExpanded ? (
@@ -256,30 +357,26 @@ export function AssetTable({
                 )}
               </div>
 
-              {/* Expanded Markets - Works for both Desktop and Mobile */}
+              {/* Expanded Markets Section */}
               {isExpanded && asset.markets && asset.markets.length > 0 && (
-                <div className="md:ml-16 space-y-1">
+                <div className="bg-gray-800/30 rounded-lg p-4 ml-0 md:ml-6 space-y-2">
+                  <h4 className="text-sm font-semibold text-white/80 mb-3">
+                    Available Markets
+                  </h4>
                   {asset.markets.map((market) => (
                     <div
                       key={market.id}
-                      className="bg-gray-500/10 hover:bg-gray-500/15 rounded-md px-4 md:px-6 py-2 md:py-2 text-sm text-white/80 transition-colors"
+                      className="bg-gray-700/30 rounded-lg p-3 flex items-center justify-between hover:bg-gray-700/40 transition-colors"
                     >
-                      {/* Desktop Layout */}
-                      <div className="hidden md:flex justify-between items-center">
-                        <span>{market.name}</span>
-                        <div className="flex gap-4">
-                          <span className="text-blue-400">{market.tvl}</span>
-                          <span className="text-green-400">{market.apy}</span>
+                      <div className="flex-1">
+                        <div className="font-medium text-white text-sm mb-1">
+                          {market.name}
                         </div>
-                      </div>
-                      {/* Mobile Layout */}
-                      <div className="md:hidden">
-                        <p className="font-medium mb-1">{market.name}</p>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-blue-400">
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="text-white/60">
                             TVL: {market.tvl}
                           </span>
-                          <span className="text-green-400">
+                          <span className="text-green-400 font-semibold">
                             APY: {market.apy}
                           </span>
                         </div>
@@ -293,7 +390,7 @@ export function AssetTable({
         })}
       </div>
 
-      {/* Modal */}
+      {/* Asset Modal */}
       {selectedAsset && (
         <AssetModal isOpen={isModalOpen} onClose={closeModal}>
           <div className="space-y-6">
@@ -308,45 +405,122 @@ export function AssetTable({
                   width={40}
                 />
               </div>
-              <div>
-                <h3 className="text-2xl font-bold text-white">
-                  {selectedAsset.name}
-                </h3>
-                <p className="text-white/60">
-                  {selectedAsset.symbol} • {selectedAsset.chain} •{" "}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-2xl font-bold text-white">
+                    {selectedAsset.name}
+                  </h3>
+                  {!selectedAsset.isactive ? (
+                    <span className="bg-red-900/60 text-red-400 px-3 py-1 rounded-md text-xs font-semibold">
+                      Inactive
+                    </span>
+                  ) : (
+                    <span className="bg-blue-900/60 text-blue-400 px-3 py-1 rounded-md text-xs font-semibold">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <p className="text-white/60 text-sm">
+                  {selectedAsset.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Asset Details Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-800/40 rounded-lg p-4">
+                <div className="text-white/50 text-xs mb-1">Symbol</div>
+                <div className="text-white font-semibold">
+                  {selectedAsset.symbol}
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-4">
+                <div className="text-white/50 text-xs mb-1">Chain</div>
+                <div className="text-white font-semibold">
+                  {selectedAsset.chain}
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-4">
+                <div className="text-white/50 text-xs mb-1">Category</div>
+                <div className="text-white font-semibold">
                   {selectedAsset.category}
-                </p>
+                </div>
               </div>
-            </div>
-
-            {/* Asset Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-500/15 rounded-xl p-4">
-                <p className="text-white/60 text-sm">Best Fixed (PT)</p>
-                <p className="text-blue-400 text-xl font-bold">
+              <div className="bg-gray-800/40 rounded-lg p-4">
+                <div className="text-white/50 text-xs mb-1">Status</div>
+                <div
+                  className={`font-semibold ${
+                    selectedAsset.isactive ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {selectedAsset.status}
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-4">
+                <div className="text-white/50 text-xs mb-1">
+                  Total Liquidity
+                </div>
+                <div className="text-white font-semibold">
+                  $
+                  {(selectedAsset.totalLiquidity / 1000000).toLocaleString(
+                    undefined,
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  )}
+                  M
+                </div>
+              </div>
+              <div className="bg-gray-800/40 rounded-lg p-4">
+                <div className="text-white/50 text-xs mb-1">Best Fixed APY</div>
+                <div className="text-green-400 font-semibold">
                   {selectedAsset.bestFixedAPY}%
-                </p>
+                </div>
               </div>
             </div>
 
-            {/* Additional Info */}
-            <div className="bg-gray-500/15 rounded-xl p-4">
-              <h4 className="text-white font-semibold mb-2">
-                Market Information
-              </h4>
-              <div className="space-y-1 text-white/70 text-sm">
-                <p>Total Pools: {selectedAsset.pools}</p>
-                <p>Category: {selectedAsset.category}</p>
+            {/* Focus Area */}
+            <div className="bg-gray-800/40 rounded-lg p-4">
+              <div className="text-white/50 text-xs mb-2">Strategy Focus</div>
+              <div className="text-white text-sm leading-relaxed">
+                {selectedAsset.focus}
+              </div>
+            </div>
+
+            {/* Contract Address */}
+            <div className="bg-gray-800/40 rounded-lg p-4">
+              <div className="text-white/50 text-xs mb-2">Contract Address</div>
+              <div className="text-white font-mono text-xs break-all">
+                {selectedAsset.address}
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 py-3 px-6 hover:from-blue-700 text-white font-medium text-lg rounded-xl shadow-lg  transition-all duration-300">
-                Stake
-              </button>
-              <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-xl transition-colors">
-                View More
+            <div className="flex gap-3">
+              <Link href="/deposit">
+                <button
+                  onClick={() => {
+                    if (selectedAsset.isactive) {
+                      handleSelectPilot(selectedAsset);
+                      closeModal();
+                    }
+                  }}
+                  disabled={!selectedAsset.isactive}
+                  className={`flex-1 font-medium py-3 px-6 rounded-lg transition-colors ${
+                    selectedAsset.isactive
+                      ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                      : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  {selectedAsset.isactive ? "Select Pilot" : "Pilot Inactive"}
+                </button>
+              </Link>
+              <button
+                onClick={closeModal}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

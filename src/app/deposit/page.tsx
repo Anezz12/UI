@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Info,
   ExternalLink,
@@ -11,7 +11,9 @@ import {
   Wallet,
   Copy,
   Check,
-  ActivitySquare,
+  X,
+  AlertTriangle,
+  Target,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,11 +21,18 @@ import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount } from "wagmi";
 import { useUSDCBalance, useSTokenBalance } from "@/hooks/useTokenBalance";
 import { useStaking } from "@/hooks/useStaking";
+import { CONTRACTS } from "@/contracts/addresses";
+import toast from "react-hot-toast";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function StakePage() {
   const [usdcAmount, setUsdcAmount] = useState("");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [pilotCopied, setPilotCopied] = useState(false);
+  const [showNoUSDCPopup, setShowNoUSDCPopup] = useState(false);
+  const [showInsufficientPopup, setShowInsufficientPopup] = useState(false);
 
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
@@ -32,30 +41,145 @@ export default function StakePage() {
   const { formatted: sUSDCBalance, refetch: refetchSToken } =
     useSTokenBalance();
 
-  // const { address, isConnected, isConnecting, chainId } = useAccount();
-  // const {
-  //   formatted: usdcBalance,
-  //   refetch: refetchUSDC,
-  //   raw: rawUSDCBalance,
-  // } = useUSDCBalance();
-  // const {
-  //   formatted: sUSDCBalance,
-  //   refetch: refetchSToken,
-  //   balance: rawSUSDCBalance,
-  //   sTokenAddress,
-  // } = useSTokenBalance();
-
   const { stake, isSubmitting, error, resetError } = useStaking();
+  const pilotCopyTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleMaxClick = () => {
-    setUsdcAmount(usdcBalance);
+  const pilotDirectory = useMemo(() => {
+    return {
+      [CONTRACTS.pilot.toLowerCase()]: {
+        name: "Atlas Core Pilot",
+        address: CONTRACTS.pilot as string,
+      },
+      ["0x8c1f10c0ae63b51c8ba3b2ac7184998f5e552f10"]: {
+        name: "YieldWave Labs",
+        address: "0x8c1F10c0AE63B51C8BA3b2aC7184998f5e552F10",
+      },
+      ["0x4b6c94f5ca817bc7d0b6c0d7f6e7f0a3ad5a1a31"]: {
+        name: "Horizon Shield",
+        address: "0x4b6c94F5cA817bC7d0b6C0D7f6e7F0A3ad5A1a31",
+      },
+    } as Record<string, { name: string; address: string }>;
+  }, []);
+
+  const defaultPilotInfo = useMemo(() => {
+    return (
+      pilotDirectory[CONTRACTS.pilot.toLowerCase()] ?? {
+        name: "Atlas Core Pilot",
+        address: CONTRACTS.pilot as string,
+      }
+    );
+  }, [pilotDirectory]);
+
+  const [selectedPilotInfo, setSelectedPilotInfo] = useState(defaultPilotInfo);
+
+  // Format number with thousand separator
+  const formatNumber = (num: string | number): string => {
+    if (!num || num === "0" || num === "0.00") return "0.00";
+    const number = typeof num === "string" ? parseFloat(num) : num;
+    if (isNaN(number)) return "0.00";
+
+    return number.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 18,
+    });
   };
 
+  // handle max button click
+  const handleMaxClick = () => {
+    const cleanBalance = usdcBalance.replace(/,/g, "");
+    setUsdcAmount(cleanBalance);
+  };
+
+  // handle input change with validation
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    if (value.length > 1 && value.startsWith("0") && !value.startsWith("0.")) {
+      value = value.replace(/^0+/, "");
+      if (value === "") value = "0";
+    }
+
+    if (!/^\d*\.?\d*$/.test(value)) return;
+
+    if (value.includes(".")) {
+      const [whole, decimal] = value.split(".");
+      if (decimal && decimal.length > 6) {
+        value = `${whole}.${decimal.substring(0, 6)}`;
+      }
+    }
+
+    setUsdcAmount(value);
+
+    // Check if amount exceeds balance and show popup
+    if (isConnected && value) {
+      const cleanBalance = usdcBalance.replace(/,/g, "");
+      const inputAmount = parseFloat(value);
+      const availableBalance = parseFloat(cleanBalance);
+
+      // Show insufficient balance popup when user types amount > balance
+      if (inputAmount > availableBalance && availableBalance > 0) {
+        setShowInsufficientPopup(true);
+      }
+
+      // Show no USDC popup when user tries to type but has 0 balance
+      if (availableBalance === 0 && inputAmount > 0) {
+        setShowNoUSDCPopup(true);
+        setUsdcAmount(""); // Clear input
+      }
+    }
+  };
+
+  // determine if stake button should be disabled
+  const isStakeDisabled = () => {
+    if (!isConnected || isSubmitting) return true;
+
+    // Check if USDC balance is 0
+    const cleanBalance = usdcBalance.replace(/,/g, "");
+    if (parseFloat(cleanBalance) === 0) return true;
+
+    // Check if input amount is valid
+    if (!usdcAmount || parseFloat(usdcAmount) <= 0) return true;
+
+    // Check if amount exceeds balance
+    if (parseFloat(usdcAmount) > parseFloat(cleanBalance)) return true;
+
+    return false;
+  };
+
+  // determine stake button text
+  const getStakeButtonText = () => {
+    if (isSubmitting) return "Staking...";
+
+    const cleanBalance = usdcBalance.replace(/,/g, "");
+    if (parseFloat(cleanBalance) === 0) return "Get USDC First";
+
+    if (!usdcAmount || parseFloat(usdcAmount) <= 0) return "Enter Amount";
+
+    if (parseFloat(usdcAmount) > parseFloat(cleanBalance))
+      return "Amount Exceeds Balance";
+
+    return "Deposit Now";
+  };
+
+  // handle copy address
   const handleCopyAddress = () => {
     if (!address) return;
     navigator.clipboard.writeText(address);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyPilotAddress = () => {
+    const pilotAddress = selectedPilotInfo?.address;
+    if (!pilotAddress) return;
+
+    navigator.clipboard.writeText(pilotAddress).then(() => {
+      setPilotCopied(true);
+      if (pilotCopyTimeout.current) {
+        clearTimeout(pilotCopyTimeout.current);
+      }
+      pilotCopyTimeout.current = setTimeout(() => setPilotCopied(false), 2000);
+    });
   };
 
   const formatAddress = (addr: string) =>
@@ -68,6 +192,7 @@ export default function StakePage() {
     marketCap: "$35,031,698,430",
   };
 
+  // handle wallet connect
   const handleConnect = async () => {
     try {
       resetError();
@@ -77,47 +202,68 @@ export default function StakePage() {
     }
   };
 
+  // handle staking
   const handleStake = async () => {
-    const success = await stake(usdcAmount);
-    if (success) {
-      setUsdcAmount("");
-      setTimeout(() => {
-        refetchUSDC();
-        refetchSToken();
-      }, 2000);
+    const toastId = toast.loading("Waiting for wallet confirmation...");
+    try {
+      const success = await stake(usdcAmount);
+      if (success) {
+        toast.success("Deposit successful! Refreshing balance...", {
+          id: toastId,
+        });
+        setUsdcAmount("");
+        setTimeout(() => {
+          refetchUSDC();
+          refetchSToken();
+        }, 2000);
+      } else {
+        toast.error("Deposit canceled.", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Deposit failed, please try again later.", { id: toastId });
+      console.error(err);
+    } finally {
+      toast.dismiss(toastId);
     }
   };
 
-  // useEffect(() => {
-  //   console.log("=== WALLET INFO ===");
-  //   console.log("Address:", address);
-  //   console.log("Is Connected:", isConnected);
-  //   console.log("Is Connecting:", isConnecting);
-  //   console.log("Chain ID:", chainId);
-  //   console.log(
-  //     "Chain Name:",
-  //     chainId === 84532
-  //       ? "Base Sepolia"
-  //       : chainId === 11155111
-  //         ? "Sepolia"
-  //         : "Unknown"
-  //   );
-  //   console.log("USDC Balance (formatted):", usdcBalance);
-  //   console.log("USDC Balance (raw):", rawUSDCBalance?.toString());
-  //   console.log("sUSDC Balance (formatted):", sUSDCBalance);
-  //   console.log("sUSDC Balance (raw):", rawSUSDCBalance?.toString());
-  //   console.log("sToken Address:", sTokenAddress);
-  //   console.log("==================");
-  // }, [
-  //   address,
-  //   isConnected,
-  //   chainId,
-  //   usdcBalance,
-  //   sUSDCBalance,
-  //   rawUSDCBalance,
-  //   rawSUSDCBalance,
-  //   sTokenAddress,
-  // ]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const STORAGE_KEY = "supercluster.selectedPilot";
+
+    const updateSelectedPilot = () => {
+      const storedAddress = window.localStorage.getItem(STORAGE_KEY);
+      if (storedAddress && storedAddress.startsWith("0x")) {
+        const entry = pilotDirectory[storedAddress.toLowerCase()] ?? {
+          name: "Custom Pilot",
+          address: storedAddress,
+        };
+        setSelectedPilotInfo(entry);
+      } else {
+        setSelectedPilotInfo(defaultPilotInfo);
+      }
+    };
+
+    updateSelectedPilot();
+    window.addEventListener("storage", updateSelectedPilot);
+
+    return () => {
+      window.removeEventListener("storage", updateSelectedPilot);
+    };
+  }, [pilotDirectory, defaultPilotInfo]);
+
+  useEffect(() => {
+    return () => {
+      if (pilotCopyTimeout.current) {
+        clearTimeout(pilotCopyTimeout.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
 
   const faqItems = [
     {
@@ -160,6 +306,44 @@ export default function StakePage() {
 
   return (
     <div className="min-h-screen pb-24 text-white">
+      {/* No USDC Popup */}
+      {showNoUSDCPopup && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-6 h-6 text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-white text-lg mb-2">
+                  No USDC Available
+                </h3>
+                <p className="text-slate-300 text-sm leading-relaxed mb-4">
+                  You need USDC tokens to stake. You can get USDC from exchanges
+                  like Coinbase, Binance, or swap other tokens for USDC on
+                  decentralized exchanges.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowNoUSDCPopup(false)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Get USDC
+                  </Button>
+                  <Button
+                    onClick={() => setShowNoUSDCPopup(false)}
+                    variant="outline"
+                    className="px-4 border-slate-600 text-slate-300 hover:bg-slate-800"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12 relative">
@@ -207,14 +391,17 @@ export default function StakePage() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-semibold leading-none">
-                        USDC
-                      </div>
+                      <Image
+                        src="/usdc.png"
+                        alt="USDC"
+                        width={48}
+                        height={48}
+                      />
                       <Input
-                        type="number"
+                        type="text"
                         placeholder="0.00"
                         value={usdcAmount}
-                        onChange={(e) => setUsdcAmount(e.target.value)}
+                        onChange={handleAmountChange}
                         disabled={!isConnected || isSubmitting}
                         className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 disabled:opacity-50"
                       />
@@ -289,6 +476,40 @@ export default function StakePage() {
                         {stats.apr}
                       </div>
                     </div>
+
+                    {/* Selected Pilot */}
+                    <div className="space-y-1 sm:col-span-2">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-cyan-300" />
+                        <span className="text-xs text-slate-400 font-medium">
+                          Selected pilot
+                        </span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                        <span className="text-lg font-semibold text-white">
+                          {selectedPilotInfo?.name ?? "Atlas Core Pilot"}
+                        </span>
+                        <Link
+                          href="/pilot"
+                          className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors"
+                        >
+                          Manage pilots
+                        </Link>
+                      </div>
+                      <button
+                        onClick={handleCopyPilotAddress}
+                        className="flex items-center gap-2 text-sm font-mono text-white/80 hover:text-cyan-300 transition-colors group"
+                      >
+                        <span>
+                          {formatAddress(selectedPilotInfo?.address ?? "")}
+                        </span>
+                        {pilotCopied ? (
+                          <Check className="w-3.5 h-3.5 text-green-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -299,12 +520,16 @@ export default function StakePage() {
                   You will receive
                 </label>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-semibold leading-none">
-                      sUSDC
-                    </div>
-                    <div className="text-3xl font-semibold text-white">
-                      {usdcAmount || "0.00"} sUSDC
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Image
+                      src="/susdc.png"
+                      alt="sUSDC"
+                      width={48}
+                      height={48}
+                      className="flex-shrink-0 rounded-full"
+                    />
+                    <div className="text-3xl font-semibold text-white truncate">
+                      {formatNumber(usdcAmount || "0")} sUSDC
                     </div>
                   </div>
                 </div>
@@ -321,12 +546,14 @@ export default function StakePage() {
               {isConnected ? (
                 <Button
                   onClick={handleStake}
-                  disabled={
-                    !usdcAmount || parseFloat(usdcAmount) <= 0 || isSubmitting
-                  }
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  disabled={isStakeDisabled()}
+                  className={`w-full h-14 font-bold text-lg rounded-xl shadow-lg transition-all disabled:cursor-not-allowed disabled:shadow-none ${
+                    isStakeDisabled()
+                      ? "bg-slate-700 text-slate-400 border border-slate-600"
+                      : "w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-lg rounded-xl transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  }`}
                 >
-                  {isSubmitting ? "Staking..." : "Stake Now"}
+                  {getStakeButtonText()}
                 </Button>
               ) : (
                 <Button
@@ -377,7 +604,7 @@ export default function StakePage() {
               <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center">
-                    <ActivitySquare className="w-5 h-5 text-cyan-400" />
+                    <Sparkles className="w-5 h-5 text-cyan-400" />
                   </div>
                   <span className="text-sm text-slate-400">Active Stakers</span>
                 </div>
