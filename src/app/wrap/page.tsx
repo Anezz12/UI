@@ -17,6 +17,7 @@ import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount, useBalance } from "wagmi";
 import { useSTokenBalance, useWsTokenBalance } from "@/hooks/useTokenBalance";
 import { useWrapping } from "@/hooks/useWrapping";
+import Image from "next/image";
 
 export default function LidoWrapUnwrap() {
   const router = useRouter();
@@ -226,8 +227,16 @@ export default function LidoWrapUnwrap() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl leading-none">
-                        {activeTab === "wrap" ? "s" : "ws"}
+                      <div className="w-12 h-12 overflow-hidden  flex items-center justify-center rounded-full">
+                        <Image
+                          height={40}
+                          width={40}
+                          src={
+                            activeTab === "wrap" ? "/susdc.png" : "/wsusdc.png"
+                          }
+                          alt={activeTab === "wrap" ? "sUSDC" : "wsUSDC"}
+                          className="rounded-full"
+                        />
                       </div>
 
                       <Input
@@ -252,100 +261,114 @@ export default function LidoWrapUnwrap() {
 
               {/* Wallet Info - Only show when connected */}
               {isConnected && address && (
-                <div className="mb-6 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 rounded-2xl">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* ETH Balance */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Wallet className="w-4 h-4 text-blue-400" />
-                        <span className="text-xs text-slate-400 font-medium">
-                          ETH balance
-                        </span>
-                      </div>
-                      <div className="text-xl font-bold text-white">
-                        {ethBalance
-                          ? parseFloat(ethBalance.formatted).toFixed(4)
-                          : "0.0"}{" "}
-                        ETH
-                      </div>
-                    </div>
-
-                    {/* Wallet Address */}
-                    <div className="space-y-1">
-                      <span className="text-xs text-slate-400 font-medium block">
-                        Wallet Address
-                      </span>
-                      <button
-                        onClick={handleCopyAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
-                      >
-                        <span>{formatAddress(address)}</span>
-                        {copied ? (
-                          <Check className="w-3.5 h-3.5 text-green-400" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* sUSDC Balance */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
-                          <span className="text-[8px] font-bold text-white">
-                            st
-                          </span>
-                        </div>
-                        <span className="text-xs text-slate-400 font-medium">
-                          sUSDC balance
-                        </span>
-                      </div>
-                      <div className="space-y-0.5">
-                        <div className="text-xl font-bold text-white">
-                          {sUSDCBalance} sUSDC
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          ≈{" "}
-                          {sUSDCBalance && formattedConversionRate
-                            ? (
-                                parseFloat(sUSDCBalance.replace(/,/g, "")) /
-                                parseFloat(
-                                  formattedConversionRate.replace(/,/g, "")
-                                )
-                              ).toFixed(4)
-                            : "0.0000"}{" "}
-                          wsUSDC
+                <div className="mb-6 p-6 bg-gradient-to-br from-slate-800/60 via-slate-800/40 to-slate-900/60 border border-slate-700/50 rounded-2xl backdrop-blur-sm">
+                  <div className="grid grid-cols-1 gap-5">
+                    {/* Wallet Address Header */}
+                    <div className="pb-4 border-b border-slate-700/50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-blue-500/20">
+                            <Wallet className="w-5 h-5 text-blue-400" />
+                          </div>
+                          <div>
+                            <span className="text-xs text-slate-400 font-medium block mb-1">
+                              Connected Wallet
+                            </span>
+                            <button
+                              onClick={handleCopyAddress}
+                              className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
+                            >
+                              <span className="font-semibold">
+                                {formatAddress(address)}
+                              </span>
+                              {copied ? (
+                                <Check className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <Copy className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* wsUSDC Balance */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 flex items-center justify-center">
-                          <span className="text-[8px] font-bold text-white">
-                            w
-                          </span>
+                    {/* Token Balances Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* sUSDC Balance */}
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative p-4 bg-slate-900/40 border border-slate-700/30 rounded-xl hover:border-blue-500/30 transition-all">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex items-center justify-center border border-slate-700/50">
+                              <Image
+                                src="/susdc.png"
+                                alt="sUSDC"
+                                width={24}
+                                height={24}
+                                className="object-contain"
+                              />
+                            </div>
+                            <span className="text-sm text-slate-400 font-medium">
+                              sUSDC
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-2xl font-bold text-white">
+                              {sUSDCBalance}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              ≈{" "}
+                              {sUSDCBalance && formattedConversionRate
+                                ? (
+                                    parseFloat(sUSDCBalance.replace(/,/g, "")) /
+                                    parseFloat(
+                                      formattedConversionRate.replace(/,/g, "")
+                                    )
+                                  ).toFixed(4)
+                                : "0.0000"}{" "}
+                              wsUSDC
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-xs text-slate-400 font-medium">
-                          wsUSDC balance
-                        </span>
                       </div>
-                      <div className="space-y-0.5">
-                        <div className="text-xl font-bold text-white">
-                          {wsUSDCBalance} wsUSDC
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          ≈{" "}
-                          {wsUSDCBalance && formattedConversionRate
-                            ? (
-                                parseFloat(wsUSDCBalance.replace(/,/g, "")) *
-                                parseFloat(
-                                  formattedConversionRate.replace(/,/g, "")
-                                )
-                              ).toFixed(4)
-                            : "0.0000"}{" "}
-                          sUSDC
+
+                      {/* wsUSDC Balance */}
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative p-4 bg-slate-900/40 border border-slate-700/30 rounded-xl hover:border-cyan-500/30 transition-all">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-800 flex items-center justify-center border border-slate-700/50">
+                              <Image
+                                src="/wsusdc.png"
+                                alt="wsUSDC"
+                                width={24}
+                                height={24}
+                                className="object-contain"
+                              />
+                            </div>
+                            <span className="text-sm text-slate-400 font-medium">
+                              wsUSDC
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="text-2xl font-bold text-white">
+                              {wsUSDCBalance}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              ≈{" "}
+                              {wsUSDCBalance && formattedConversionRate
+                                ? (
+                                    parseFloat(
+                                      wsUSDCBalance.replace(/,/g, "")
+                                    ) *
+                                    parseFloat(
+                                      formattedConversionRate.replace(/,/g, "")
+                                    )
+                                  ).toFixed(4)
+                                : "0.0000"}{" "}
+                              sUSDC
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -367,8 +390,16 @@ export default function LidoWrapUnwrap() {
                 </label>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xl leading-none">
-                      {activeTab === "wrap" ? "ws" : "s"}
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                      <Image
+                        height={40}
+                        width={40}
+                        src={
+                          activeTab === "wrap" ? "/wsusdc.png" : "/susdc.png"
+                        }
+                        alt={activeTab === "wrap" ? "wsUSDC" : "sUSDC"}
+                        className="rounded-full"
+                      />
                     </div>
                     <div className="text-3xl font-semibold text-white">
                       {activeTab === "wrap"
@@ -401,8 +432,8 @@ export default function LidoWrapUnwrap() {
                       ? "Wrapping..."
                       : "Unwrapping..."
                     : activeTab === "wrap"
-                    ? "Wrap sUSDC"
-                    : "Unwrap wsUSDC"}
+                      ? "Wrap sUSDC"
+                      : "Unwrap wsUSDC"}
                 </Button>
               ) : (
                 <Button
