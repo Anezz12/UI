@@ -11,6 +11,7 @@ import {
   Wallet,
   Copy,
   Check,
+  ActivitySquare,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -158,8 +159,8 @@ export default function StakePage() {
   ];
 
   return (
-    <div className="min-h-screen pb-12 text-white">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen pb-24 text-white">
+      <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12 relative">
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
@@ -206,7 +207,7 @@ export default function StakePage() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-sm">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-semibold leading-none">
                         USDC
                       </div>
                       <Input
@@ -299,7 +300,7 @@ export default function StakePage() {
                 </label>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-sm">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xs font-semibold leading-none">
                       sUSDC
                     </div>
                     <div className="text-3xl font-semibold text-white">
@@ -376,7 +377,7 @@ export default function StakePage() {
               <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-cyan-400" />
+                    <ActivitySquare className="w-5 h-5 text-cyan-400" />
                   </div>
                   <span className="text-sm text-slate-400">Active Stakers</span>
                 </div>

@@ -72,10 +72,7 @@ export function Navbar({ links }: NavbarProps) {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/50 transition-all">
-                <span className="text-white font-bold text-lg">S</span>
-              </div>
-              <span className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:block">
+              <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:block">
                 SuperCluster
               </span>
             </Link>
@@ -153,7 +150,7 @@ export function Navbar({ links }: NavbarProps) {
               {/* Connect Wallet - Desktop */}
               {isConnected && address ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all duration-300 outline-none">
+                  <DropdownMenuTrigger className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium transition-all duration-300 outline-none">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                     <span>{formatAddress(address)}</span>
                   </DropdownMenuTrigger>

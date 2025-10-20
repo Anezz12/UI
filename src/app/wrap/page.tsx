@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount, useBalance } from "wagmi";
+import { useSTokenBalance, useWsTokenBalance } from "@/hooks/useTokenBalance";
+import { useWrapping } from "@/hooks/useWrapping";
 
 export default function LidoWrapUnwrap() {
   const router = useRouter();
@@ -31,9 +33,17 @@ export default function LidoWrapUnwrap() {
     address: address,
   });
 
-  // TODO: Get sUSDC and wsUSDC balance from contract
-  const stETHBalance = "0.0";
-  const wstETHBalance = "0.0";
+  // Get sUSDC and wsUSDC balances
+  const { formatted: sUSDCBalance, refetch: refetchSToken } =
+    useSTokenBalance();
+  const {
+    formatted: wsUSDCBalance,
+    formattedConversionRate,
+    refetch: refetchWsToken,
+  } = useWsTokenBalance();
+
+  // Wrapping functionality
+  const { wrap, unwrap, isSubmitting, error, resetError } = useWrapping();
 
   const activeTab = pathname === "/wrap/unwrap" ? "unwrap" : "wrap";
 
@@ -46,10 +56,10 @@ export default function LidoWrapUnwrap() {
   };
 
   const handleMaxClick = () => {
-    if (activeTab === "wrap" && stETHBalance) {
-      setAmount(stETHBalance);
-    } else if (activeTab === "unwrap" && wstETHBalance) {
-      setAmount(wstETHBalance);
+    if (activeTab === "wrap" && sUSDCBalance) {
+      setAmount(sUSDCBalance.replace(/,/g, ""));
+    } else if (activeTab === "unwrap" && wsUSDCBalance) {
+      setAmount(wsUSDCBalance.replace(/,/g, ""));
     }
   };
 
@@ -67,6 +77,7 @@ export default function LidoWrapUnwrap() {
 
   const handleConnect = async () => {
     try {
+      resetError();
       await open();
     } catch (error) {
       console.error("Wallet connection error:", error);
@@ -78,13 +89,18 @@ export default function LidoWrapUnwrap() {
       return;
     }
     try {
-      console.log(
-        "Wrapping",
-        amount,
-        activeTab === "wrap" ? "sUSDC" : "wsUSDC"
-      );
+      const success =
+        activeTab === "wrap" ? await wrap(amount) : await unwrap(amount);
+
+      if (success) {
+        setAmount("");
+        setTimeout(() => {
+          refetchSToken();
+          refetchWsToken();
+        }, 2000);
+      }
     } catch (error) {
-      console.error("Wrap error:", error);
+      console.error("Wrap/Unwrap error:", error);
     }
   };
 
@@ -116,31 +132,45 @@ export default function LidoWrapUnwrap() {
     },
   ];
 
+  // Calculate conversion based on real conversion rate
+  const calculateWrapReceive = () => {
+    if (!amount || !formattedConversionRate) return "0.0000";
+    const amountNum = parseFloat(amount);
+    const rateNum = parseFloat(formattedConversionRate.replace(/,/g, ""));
+    if (rateNum === 0) return "0.0000";
+    return (amountNum / rateNum).toFixed(4);
+  };
+
+  const calculateUnwrapReceive = () => {
+    if (!amount || !formattedConversionRate) return "0.0000";
+    const amountNum = parseFloat(amount);
+    const rateNum = parseFloat(formattedConversionRate.replace(/,/g, ""));
+    return (amountNum * rateNum).toFixed(4);
+  };
+
   const wrapDetails = {
-    youWillReceive: amount ? `${parseFloat(amount) * 0.922}` : "0.0",
-    maxUnlockCost: "$0.25",
-    maxTransactionCost: "$0.59",
-    exchangeRate: "1  = 0.9220 wsUSDC",
+    youWillReceive: calculateWrapReceive(),
+    maxUnlockCost: "~$0.25",
+    maxTransactionCost: "~$0.59",
+    exchangeRate: `1 sUSDC = ${
+      formattedConversionRate
+        ? (1 / parseFloat(formattedConversionRate.replace(/,/g, ""))).toFixed(4)
+        : "0.0000"
+    } wsUSDC`,
     allowance: "-",
   };
 
   const unwrapDetails = {
-    youWillReceive: amount ? `${parseFloat(amount) * 1.2164}` : "0.0",
-    maxTransactionCost: "$0.56",
-    exchangeRate: "1 wsUSDC = 1.2164 sUSDC",
+    youWillReceive: calculateUnwrapReceive(),
+    maxTransactionCost: "~$0.56",
+    exchangeRate: `1 wsUSDC = ${formattedConversionRate || "0.0000"} sUSDC`,
   };
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen pb-24 text-white">
+      <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6">
-            <ArrowRightLeft className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-blue-400 font-medium">
-              Token Wrapper
-            </span>
-          </div>
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
               Convert Your Tokens
@@ -196,16 +226,17 @@ export default function LidoWrapUnwrap() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-lg">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-xl leading-none">
                         {activeTab === "wrap" ? "s" : "ws"}
                       </div>
+
                       <Input
                         type="number"
                         placeholder="0.00"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         disabled={!isConnected}
-                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600"
+                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 h-auto text-white placeholder:text-slate-600"
                       />
                     </div>
                     <button
@@ -271,13 +302,18 @@ export default function LidoWrapUnwrap() {
                       </div>
                       <div className="space-y-0.5">
                         <div className="text-xl font-bold text-white">
-                          {stETHBalance} sUSDC
+                          {sUSDCBalance} sUSDC
                         </div>
                         <div className="text-xs text-slate-500">
                           ≈{" "}
-                          {stETHBalance
-                            ? parseFloat(stETHBalance) * 0.922
-                            : "0.0"}{" "}
+                          {sUSDCBalance && formattedConversionRate
+                            ? (
+                                parseFloat(sUSDCBalance.replace(/,/g, "")) /
+                                parseFloat(
+                                  formattedConversionRate.replace(/,/g, "")
+                                )
+                              ).toFixed(4)
+                            : "0.0000"}{" "}
                           wsUSDC
                         </div>
                       </div>
@@ -297,13 +333,18 @@ export default function LidoWrapUnwrap() {
                       </div>
                       <div className="space-y-0.5">
                         <div className="text-xl font-bold text-white">
-                          {wstETHBalance} wsUSDC
+                          {wsUSDCBalance} wsUSDC
                         </div>
                         <div className="text-xs text-slate-500">
                           ≈{" "}
-                          {wstETHBalance
-                            ? parseFloat(wstETHBalance) * 1.2164
-                            : "0.0"}{" "}
+                          {wsUSDCBalance && formattedConversionRate
+                            ? (
+                                parseFloat(wsUSDCBalance.replace(/,/g, "")) *
+                                parseFloat(
+                                  formattedConversionRate.replace(/,/g, "")
+                                )
+                              ).toFixed(4)
+                            : "0.0000"}{" "}
                           sUSDC
                         </div>
                       </div>
@@ -320,32 +361,48 @@ export default function LidoWrapUnwrap() {
               </div>
 
               {/* To Section */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <label className="text-sm text-slate-400 mb-2 block">
                   You receive
                 </label>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-lg">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xl leading-none">
                       {activeTab === "wrap" ? "ws" : "s"}
                     </div>
                     <div className="text-3xl font-semibold text-white">
                       {activeTab === "wrap"
                         ? wrapDetails.youWillReceive
-                        : unwrapDetails.youWillReceive}
+                        : unwrapDetails.youWillReceive}{" "}
+                      <span className="text-slate-400 text-xl">
+                        {activeTab === "wrap" ? "wsUSDC" : "sUSDC"}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
               {/* Connect/Wrap Button */}
               {isConnected ? (
                 <Button
                   onClick={handleWrap}
-                  disabled={!amount || parseFloat(amount) <= 0}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  disabled={!amount || parseFloat(amount) <= 0 || isSubmitting}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-lg rounded-xl transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                  {activeTab === "wrap" ? "Wrap sUSDC" : "Unwrap wsUSDC"}
+                  {isSubmitting
+                    ? activeTab === "wrap"
+                      ? "Wrapping..."
+                      : "Unwrapping..."
+                    : activeTab === "wrap"
+                    ? "Wrap sUSDC"
+                    : "Unwrap wsUSDC"}
                 </Button>
               ) : (
                 <Button
