@@ -14,6 +14,7 @@ import {
   X,
   AlertTriangle,
   Target,
+  ActivitySquare,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -349,7 +350,7 @@ export default function StakePage() {
         <div className="text-center mb-12 relative">
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
-              Stake & Earn Rewards
+              Deposite & Earn Rewards
             </span>
           </h1>
 
@@ -403,7 +404,7 @@ export default function StakePage() {
                         value={usdcAmount}
                         onChange={handleAmountChange}
                         disabled={!isConnected || isSubmitting}
-                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 disabled:opacity-50"
+                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-1 h-auto text-white placeholder:text-slate-600 disabled:opacity-50"
                       />
                     </div>
                     <button
@@ -604,7 +605,7 @@ export default function StakePage() {
               <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-cyan-400" />
+                    <ActivitySquare className="w-5 h-5 text-cyan-400" />
                   </div>
                   <span className="text-sm text-slate-400">Active Stakers</span>
                 </div>

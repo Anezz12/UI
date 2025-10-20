@@ -236,7 +236,7 @@ export default function LidoWrapUnwrap() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         disabled={!isConnected}
-                        className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 h-auto text-white placeholder:text-slate-600"
+                        className="bg-transparent border-none text-3xl font-semibold p-1 focus-visible:ring-0 h-auto text-white placeholder:text-slate-600"
                       />
                     </div>
                     <button

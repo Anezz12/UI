@@ -5,6 +5,8 @@ const requiredAddresses = {
   PILOT_ADDRESS: process.env.NEXT_PUBLIC_PILOT_ADDRESS,
   MOCK_USDC_ADDRESS: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS,
   FAUCET_ADDRESS: process.env.NEXT_PUBLIC_FAUCET_ADDRESS,
+  STOKEN_ADDRESS: process.env.NEXT_PUBLIC_STOKEN_ADDRESS,
+  WSTOKEN_ADDRESS: process.env.NEXT_PUBLIC_WSTOKEN_ADDRESS,
 };
 
 // Check for missing addresses
@@ -24,6 +26,8 @@ export const CONTRACTS = {
   pilot: process.env.NEXT_PUBLIC_PILOT_ADDRESS as Address,
   mockUSDC: process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS as Address,
   faucet: process.env.NEXT_PUBLIC_FAUCET_ADDRESS as Address,
+  sToken: process.env.NEXT_PUBLIC_STOKEN_ADDRESS as Address,
+  wsToken: process.env.NEXT_PUBLIC_WSTOKEN_ADDRESS as Address,
 } as const;
 
 export const TOKEN_DECIMALS = {
