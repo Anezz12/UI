@@ -18,6 +18,7 @@ import {
   useReadContract,
   useWriteContract,
 } from "wagmi";
+import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { useUSDCBalance } from "@/hooks/useTokenBalance";
@@ -57,7 +58,7 @@ export default function FaucetPage() {
   const [copied, setCopied] = useState(false);
 
   const { open } = useWeb3Modal();
-  const { address, isConnected, chainId } = useAccount();
+  const { isConnected, chainId } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
   const { formatted: usdcBalance, refetch } = useUSDCBalance();
@@ -87,7 +88,9 @@ export default function FaucetPage() {
       setError(null);
       await open();
     } catch (err) {
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -108,14 +111,18 @@ export default function FaucetPage() {
     }
 
     if (!isBaseSepolia(chainId)) {
-      setError("Please switch to Base Sepolia to use the faucet.");
+      const message = "Please switch to Base Sepolia to use the faucet.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    let toastId: string | undefined;
     try {
       setError(null);
       setIsRequesting(true);
       setTxHash(null);
+      toastId = toast.loading("Requesting test USDC from faucet...");
 
       const hash = await writeContractAsync({
         address: CONTRACTS.faucet,
@@ -126,9 +133,18 @@ export default function FaucetPage() {
       setTxHash(hash);
       await publicClient?.waitForTransactionReceipt({ hash });
       await refetch?.();
+      toast.success("Mock USDC has been sent to your wallet!", {
+        id: toastId,
+      });
     } catch (err) {
       console.error("Faucet request failed", err);
-      setError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setError(message);
+      if (toastId) {
+        toast.error(message, { id: toastId });
+      } else {
+        toast.error(message);
+      }
     } finally {
       setIsRequesting(false);
     }
@@ -198,7 +214,8 @@ export default function FaucetPage() {
                     {formattedTokenAddress ? (
                       <button
                         onClick={handleCopyAddress}
-                        className="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200 transition-colors">
+                        className="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200 transition-colors"
+                      >
                         {formatAddress(formattedTokenAddress)}
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -230,7 +247,8 @@ export default function FaucetPage() {
                         href={explorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline text-emerald-100">
+                        className="underline text-emerald-100"
+                      >
                         View transaction
                       </Link>
                     )}
@@ -280,8 +298,9 @@ export default function FaucetPage() {
                         {" Use the newly minted tokens on the"}
                         <Link
                           href="/deposit"
-                          className="text-cyan-300 hover:text-cyan-200 underline">
-                          Stake
+                          className="text-cyan-300 hover:text-cyan-200 underline"
+                        >
+                          Deposit
                         </Link>
                         {"  page to test pilots and strategies."}
                       </p>
@@ -294,13 +313,15 @@ export default function FaucetPage() {
                     <Button
                       onClick={handleRequestTokens}
                       disabled={isRequesting}
-                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
                       {isRequesting ? "Requesting..." : "Get Test USDC"}
                     </Button>
                   ) : (
                     <Button
                       onClick={handleConnect}
-                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all">
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+                    >
                       Connect Wallet
                     </Button>
                   )}
