@@ -23,6 +23,7 @@ import { useUSDCBalance, useSTokenBalance } from "@/hooks/useTokenBalance";
 import { useStaking } from "@/hooks/useStaking";
 import { CONTRACTS } from "@/contracts/addresses";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function StakePage() {
   const [usdcAmount, setUsdcAmount] = useState("");
@@ -78,7 +79,7 @@ export default function StakePage() {
 
     return number.toLocaleString("en-US", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 6,
+      maximumFractionDigits: 18,
     });
   };
 
@@ -384,9 +385,12 @@ export default function StakePage() {
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-sm">
-                        USDC
-                      </div>
+                      <Image
+                        src="/usdc.png"
+                        alt="USDC"
+                        width={48}
+                        height={48}
+                      />
                       <Input
                         type="text"
                         placeholder="0.00"
@@ -506,11 +510,15 @@ export default function StakePage() {
                   You will receive
                 </label>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-sm">
-                      sUSDC
-                    </div>
-                    <div className="text-3xl font-semibold text-white">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <Image
+                      src="/susdc.png"
+                      alt="sUSDC"
+                      width={48}
+                      height={48}
+                      className="flex-shrink-0 rounded-full"
+                    />
+                    <div className="text-3xl font-semibold text-white truncate">
                       {formatNumber(usdcAmount || "0")} sUSDC
                     </div>
                   </div>
