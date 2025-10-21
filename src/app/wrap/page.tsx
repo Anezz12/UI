@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   ArrowRightLeft,
@@ -17,6 +17,7 @@ import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount, useBalance } from "wagmi";
 import { useSTokenBalance, useWsTokenBalance } from "@/hooks/useTokenBalance";
 import { useWrapping } from "@/hooks/useWrapping";
+import toast from "react-hot-toast";
 import Image from "next/image";
 
 export default function LidoWrapUnwrap() {
@@ -89,21 +90,59 @@ export default function LidoWrapUnwrap() {
     if (!amount || parseFloat(amount) <= 0) {
       return;
     }
+
+    const toastId = toast.loading("Waiting for wallet confirmation...");
     try {
       const success =
         activeTab === "wrap" ? await wrap(amount) : await unwrap(amount);
 
       if (success) {
+        const actionText = activeTab === "wrap" ? "Wrap" : "Unwrap";
+        toast.success(`${actionText} successful! Refreshing balance...`, {
+          id: toastId,
+        });
         setAmount("");
         setTimeout(() => {
           refetchSToken();
           refetchWsToken();
         }, 2000);
+      } else {
+        // User rejected or transaction failed
+        toast.dismiss(toastId);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Check if error is user rejection
+      const errorMessage = error?.message || error?.toString() || "";
+      const isUserRejection =
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("user rejected");
+
+      if (!isUserRejection) {
+        const actionText = activeTab === "wrap" ? "wrap" : "unwrap";
+        toast.error(`Failed to ${actionText}, please try again later.`, {
+          id: toastId,
+        });
+      } else {
+        toast.dismiss(toastId);
+      }
       console.error("Wrap/Unwrap error:", error);
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      // Don't show toast for user rejection errors
+      const isUserRejection =
+        error.includes("User denied") ||
+        error.includes("User rejected") ||
+        error.includes("user rejected");
+
+      if (!isUserRejection) {
+        toast.error(error);
+      }
+    }
+  }, [error]);
 
   const faqItems = [
     {
@@ -425,15 +464,15 @@ export default function LidoWrapUnwrap() {
                 <Button
                   onClick={handleWrap}
                   disabled={!amount || parseFloat(amount) <= 0 || isSubmitting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-lg rounded-xl transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {isSubmitting
                     ? activeTab === "wrap"
                       ? "Wrapping..."
                       : "Unwrapping..."
                     : activeTab === "wrap"
-                      ? "Wrap sUSDC"
-                      : "Unwrap wsUSDC"}
+                    ? "Wrap sUSDC"
+                    : "Unwrap wsUSDC"}
                 </Button>
               ) : (
                 <Button

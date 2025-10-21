@@ -86,12 +86,16 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-16">
-              <Button className="h-16 px-10 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-medium text-lg rounded-xl transition-colors duration-300 transform">
+              <a
+                href="/deposit"
+                className="w-full sm:w-auto flex items-center bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
                 Deposit Now
-              </Button>
+              </a>
               <Button
                 variant="outline"
-                className="h-16 px-10 bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:text-blue-500 text-white font-medium text-lg rounded-xl backdrop-blur-sm transition-all duration-300">
+                className="h-16 px-10 bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:text-blue-500 text-white font-medium text-lg rounded-xl backdrop-blur-sm transition-all duration-300"
+              >
                 Read Docs
               </Button>
             </div>
@@ -110,7 +114,8 @@ export default function Home() {
               style={{
                 opacity: Math.max(0, 1 - scrollY / 10000),
                 transform: `translateY(${scrollY * 0.01}px)`,
-              }}>
+              }}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl opacity-0 transition-opacity duration-300" />
               <div className="relative bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-xl">
                 <div className="text-sm text-slate-400 mb-2">{stat.label}</div>
@@ -147,13 +152,15 @@ export default function Home() {
                 className="group relative"
                 style={{
                   animation: `fadeInUp 0.6s ease-out ${index * 0.2}s both`,
-                }}>
+                }}
+              >
                 <div
                   className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-xl opacity-0 transition-all duration-500`}
                 />
                 <div className="relative bg-slate-900/50 border border-slate-800  rounded-xl p-8 backdrop-blur-xl hover:border-white/20 transition-all duration-300 h-full">
                   <div
-                    className={`w-16 h-16 flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300`}>
+                    className={`w-16 h-16 flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <Icon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4 text-white">
@@ -277,7 +284,7 @@ export default function Home() {
             <div className="space-y-6">
               {[
                 "Aave V3 lending optimization",
-                "Morpho Blue peer-to-peer efficiency",
+                "Morpho",
                 "Modular architecture for expansion",
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4">

@@ -7,11 +7,9 @@ import {
   Shield,
   Zap,
   Award,
-  Sparkles,
   Wallet,
   Copy,
   Check,
-  X,
   AlertTriangle,
   Target,
   ActivitySquare,
@@ -218,13 +216,25 @@ export default function StakePage() {
           refetchSToken();
         }, 2000);
       } else {
-        toast.error("Deposit canceled.", { id: toastId });
+        // User rejected or transaction failed
+        toast.dismiss(toastId);
       }
-    } catch (err) {
-      toast.error("Deposit failed, please try again later.", { id: toastId });
+    } catch (err: any) {
+      // Check if error is user rejection
+      const errorMessage = err?.message || err?.toString() || "";
+      const isUserRejection =
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("user rejected");
+
+      if (!isUserRejection) {
+        toast.error("Deposit failed, please try again later.", {
+          id: toastId,
+        });
+      } else {
+        toast.dismiss(toastId);
+      }
       console.error(err);
-    } finally {
-      toast.dismiss(toastId);
     }
   };
 
@@ -263,7 +273,17 @@ export default function StakePage() {
   }, []);
 
   useEffect(() => {
-    if (error) toast.error(error);
+    if (error) {
+      // Don't show toast for user rejection errors
+      const isUserRejection =
+        error.includes("User denied") ||
+        error.includes("User rejected") ||
+        error.includes("user rejected");
+
+      if (!isUserRejection) {
+        toast.error(error);
+      }
+    }
   }, [error]);
 
   const faqItems = [
@@ -338,7 +358,8 @@ export default function StakePage() {
                 <Button
                   onClick={() => setShowNoUSDCPopup(false)}
                   variant="outline"
-                  className="flex-1 sm:flex-none h-12 px-6 border-slate-600 text-slate-300  rounded-xl transition-colors">
+                  className="flex-1 sm:flex-none h-12 px-6 border-slate-600 text-slate-300  rounded-xl transition-colors"
+                >
                   Close
                 </Button>
               </div>
@@ -412,7 +433,8 @@ export default function StakePage() {
                     <button
                       onClick={handleMaxClick}
                       disabled={!isConnected || isSubmitting}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       MAX
                     </button>
                   </div>
@@ -456,7 +478,8 @@ export default function StakePage() {
                       </span>
                       <button
                         onClick={handleCopyAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
+                      >
                         <span>{formatAddress(address)}</span>
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
@@ -492,13 +515,15 @@ export default function StakePage() {
                         </span>
                         <Link
                           href="/pilot"
-                          className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors">
+                          className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors"
+                        >
                           Manage pilots
                         </Link>
                       </div>
                       <button
                         onClick={handleCopyPilotAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white/80 hover:text-cyan-300 transition-colors group">
+                        className="flex items-center gap-2 text-sm font-mono text-white/80 hover:text-cyan-300 transition-colors group"
+                      >
                         <span>
                           {formatAddress(selectedPilotInfo?.address ?? "")}
                         </span>
@@ -550,14 +575,16 @@ export default function StakePage() {
                     isStakeDisabled()
                       ? "bg-slate-700 text-slate-400 border border-slate-600"
                       : "w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-lg rounded-xl transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                  }`}>
+                  }`}
+                >
                   {getStakeButtonText()}
                 </Button>
               ) : (
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               )}
@@ -639,7 +666,8 @@ export default function StakePage() {
                   </p>
                   <a
                     href="#"
-                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
+                  >
                     Learn more about liquid Deposit
                     <ExternalLink className="w-4 h-4" />
                   </a>
@@ -662,12 +690,14 @@ export default function StakePage() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
+                    >
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
+                      >
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>

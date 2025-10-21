@@ -43,11 +43,7 @@ export default function NavbarWrapper() {
       active: pathname.startsWith("/docs"),
       dropdown: {
         label: "Docs",
-        items: [
-          { name: "API", href: "/docs/api" },
-          { name: "Guide", href: "/docs/guide" },
-          { name: "Lorem", href: "/docs/lorem" },
-        ],
+        items: [{ name: "Overview", href: "/docs/overview" }],
       },
     },
   ];
