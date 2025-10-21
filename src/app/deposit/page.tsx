@@ -389,7 +389,7 @@ export default function StakePage() {
               {/* Input Section */}
               <div className="mb-6">
                 <label className="text-sm text-slate-400 mb-2 block">
-                  Amount to stake
+                  Amount to Deposit
                 </label>
                 <div className="relative">
                   <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">

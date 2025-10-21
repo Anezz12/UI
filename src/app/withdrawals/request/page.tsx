@@ -113,7 +113,8 @@ export default function WithdrawalsPage() {
   };
 
   const handleMaxClick = () => {
-    setAmount(stakedBalanceFormatted);
+    const numValue = parseFloat(stakedBalanceFormatted || "0");
+    setAmount(numValue.toFixed(4));
   };
 
   const handleCopyAddress = () => {
@@ -363,7 +364,10 @@ export default function WithdrawalsPage() {
                             </span>
                           </div>
                           <div className="text-2xl font-bold text-white">
-                            {stakedBalanceFormatted} sUSDC
+                            {parseFloat(stakedBalanceFormatted || "0").toFixed(
+                              4
+                            )}{" "}
+                            sUSDC
                           </div>
                         </div>
 
@@ -606,7 +610,8 @@ export default function WithdrawalsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="rounded-xl bg-slate-800/70 border border-slate-700 px-4 py-2 text-sm text-slate-300">
-                        USDC Balance: {usdcFormatted}
+                        USDC Balance:{" "}
+                        {parseFloat(usdcFormatted || "0").toFixed(4)}
                       </div>
                       <Button
                         variant="ghost"
@@ -648,7 +653,8 @@ export default function WithdrawalsPage() {
                               Total waiting
                             </span>
                             <span className="text-white font-semibold text-lg">
-                              {totalPendingAmount} sUSDC
+                              {parseFloat(totalPendingAmount || "0").toFixed(4)}{" "}
+                              sUSDC
                             </span>
                           </div>
                           <div>
@@ -703,9 +709,16 @@ export default function WithdrawalsPage() {
                                 Request #{request.id.toString()}
                               </div>
                               <div className="mt-2 text-xl font-semibold text-white">
-                                {request.sAmountFormatted} sUSDC
+                                {parseFloat(
+                                  request.sAmountFormatted || "0"
+                                ).toFixed(4)}{" "}
+                                sUSDC
                                 <span className="text-sm font-normal text-slate-400 ml-2">
-                                  ↔ {request.baseAmountFormatted} USDC
+                                  ↔{" "}
+                                  {parseFloat(
+                                    request.baseAmountFormatted || "0"
+                                  ).toFixed(4)}{" "}
+                                  USDC
                                 </span>
                               </div>
                             </div>
