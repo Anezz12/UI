@@ -194,7 +194,7 @@ export default function WithdrawalsPage() {
 
   return (
     <div className="min-h-screen text-white pb-24">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-12 relative">
           <h1 className="text-5xl md:text-6xl font-bold mb-4">

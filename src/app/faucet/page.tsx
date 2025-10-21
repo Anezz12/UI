@@ -157,13 +157,8 @@ export default function FaucetPage() {
 
   return (
     <div className="min-h-screen pb-16 text-white">
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto">
         <header className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6 backdrop-blur-sm text-sm text-blue-300">
-            <Droplets className="w-4 h-4" />
-            Base Sepolia Faucet
-          </div>
-
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Request Mock USDC for Testing
           </h1>
