@@ -56,7 +56,6 @@ export default function LidoWrapUnwrap() {
       router.push("/wrap/unwrap");
     }
   };
-
   const handleMaxClick = () => {
     if (activeTab === "wrap" && sUSDCBalance) {
       setAmount(sUSDCBalance.replace(/,/g, ""));
@@ -110,9 +109,16 @@ export default function LidoWrapUnwrap() {
         // User rejected or transaction failed
         toast.dismiss(toastId);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if error is user rejection
-      const errorMessage = error?.message || error?.toString() || "";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error !== null && "message" in error
+            ? String((error as { message: unknown }).message)
+            : typeof error === "string"
+              ? error
+              : "";
       const isUserRejection =
         errorMessage.includes("User denied") ||
         errorMessage.includes("User rejected") ||
@@ -233,8 +239,7 @@ export default function LidoWrapUnwrap() {
                     activeTab === "wrap"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}
-                >
+                  }`}>
                   {activeTab === "wrap" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl"></div>
                   )}
@@ -246,8 +251,7 @@ export default function LidoWrapUnwrap() {
                     activeTab === "unwrap"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}
-                >
+                  }`}>
                   {activeTab === "unwrap" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl"></div>
                   )}
@@ -290,8 +294,7 @@ export default function LidoWrapUnwrap() {
                     <button
                       onClick={handleMaxClick}
                       disabled={!isConnected}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       MAX
                     </button>
                   </div>
@@ -315,8 +318,7 @@ export default function LidoWrapUnwrap() {
                             </span>
                             <button
                               onClick={handleCopyAddress}
-                              className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
-                            >
+                              className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
                               <span className="font-semibold">
                                 {formatAddress(address)}
                               </span>
@@ -464,22 +466,20 @@ export default function LidoWrapUnwrap() {
                 <Button
                   onClick={handleWrap}
                   disabled={!amount || parseFloat(amount) <= 0 || isSubmitting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                >
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
                   {isSubmitting
                     ? activeTab === "wrap"
                       ? "Wrapping..."
                       : "Unwrapping..."
                     : activeTab === "wrap"
-                    ? "Wrap sUSDC"
-                    : "Unwrap wsUSDC"}
+                      ? "Wrap sUSDC"
+                      : "Unwrap wsUSDC"}
                 </Button>
               ) : (
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               )}
@@ -558,14 +558,12 @@ export default function LidoWrapUnwrap() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
-                    >
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
-                      >
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>
