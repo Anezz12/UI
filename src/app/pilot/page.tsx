@@ -187,7 +187,7 @@ export default function OperatorPage() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-24">
       <div>
         <FiltersBar
           selectedCategory={selectedCategory}

@@ -2,7 +2,14 @@ import { Address } from "viem";
 
 export type SupportedChainId = 1 | 11155111 | 8453 | 84532;
 
-export type ContractName = "superCluster" | "pilot" | "mockUSDC";
+export type ContractName =
+  | "superCluster"
+  | "pilot"
+  | "mockUSDC"
+  | "faucet"
+  | "withdrawManager"
+  | "sToken"
+  | "wsToken";
 
 export interface StakeParams {
   pilot: Address;

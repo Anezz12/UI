@@ -164,3 +164,47 @@ export function useWsTokenBalance() {
     refetch,
   };
 }
+
+// New hook for withdrawal balances
+export function useWithdrawalBalances() {
+  const { address } = useAccount();
+
+  // USDC wallet balance
+  const { data: usdcBalance, refetch: refetchUSDC } = useBalance({
+    address,
+    token: CONTRACTS.mockUSDC,
+    query: {
+      enabled: Boolean(address),
+      refetchInterval: 10000,
+    },
+  });
+
+  // sToken balance
+  const {
+    formatted: sTokenFormatted,
+    balance: sTokenBalance,
+    refetch: refetchSToken,
+  } = useSTokenBalance();
+
+  const usdcFormatted = useMemo(() => {
+    if (!usdcBalance) return "0.00";
+    return Number(usdcBalance.formatted).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }, [usdcBalance]);
+
+  const refetchAll = async () => {
+    await Promise.all([refetchUSDC(), refetchSToken()]);
+  };
+
+  return {
+    usdcBalance: usdcBalance?.value ?? BigInt(0),
+    usdcFormatted,
+    sTokenBalance,
+    sTokenFormatted,
+    refetchUSDC,
+    refetchSToken,
+    refetchAll,
+  };
+}
