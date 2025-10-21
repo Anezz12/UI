@@ -35,6 +35,7 @@ export const CONTRACTS = {
 export const TOKEN_DECIMALS = {
   USDC: 18,
   SUSDC: 18,
+  WSUSDC: 18,
 } as const;
 
 // Base Sepolia Chain ID
