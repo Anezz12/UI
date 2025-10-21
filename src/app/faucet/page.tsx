@@ -214,8 +214,7 @@ export default function FaucetPage() {
                     {formattedTokenAddress ? (
                       <button
                         onClick={handleCopyAddress}
-                        className="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200 transition-colors"
-                      >
+                        className="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200 transition-colors">
                         {formatAddress(formattedTokenAddress)}
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -247,8 +246,7 @@ export default function FaucetPage() {
                         href={explorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline text-emerald-100"
-                      >
+                        className="underline text-emerald-100">
                         View transaction
                       </Link>
                     )}
@@ -298,8 +296,7 @@ export default function FaucetPage() {
                         {" Use the newly minted tokens on the"}
                         <Link
                           href="/deposit"
-                          className="text-cyan-300 hover:text-cyan-200 underline"
-                        >
+                          className="text-cyan-300 hover:text-cyan-200 underline">
                           Deposit
                         </Link>
                         {"  page to test pilots and strategies."}
@@ -313,15 +310,13 @@ export default function FaucetPage() {
                     <Button
                       onClick={handleRequestTokens}
                       disabled={isRequesting}
-                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                       {isRequesting ? "Requesting..." : "Get Test USDC"}
                     </Button>
                   ) : (
                     <Button
                       onClick={handleConnect}
-                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all"
-                    >
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all">
                       Connect Wallet
                     </Button>
                   )}

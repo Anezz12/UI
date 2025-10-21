@@ -149,7 +149,7 @@ export default function StakePage() {
 
   // determine stake button text
   const getStakeButtonText = () => {
-    if (isSubmitting) return "Staking...";
+    if (isSubmitting) return "Depositing...";
 
     const cleanBalance = usdcBalance.replace(/,/g, "");
     if (parseFloat(cleanBalance) === 0) return "Get USDC First";
@@ -203,7 +203,7 @@ export default function StakePage() {
     }
   };
 
-  // handle staking
+  // handle Deposit
   const handleStake = async () => {
     const toastId = toast.loading("Waiting for wallet confirmation...");
     try {
@@ -268,15 +268,15 @@ export default function StakePage() {
 
   const faqItems = [
     {
-      question: "What is liquid staking?",
+      question: "What is liquid Deposit?",
       answer:
-        "Liquid staking allows you to stake your USDC and receive a tokenized version (sUSDC) that represents your staked USDC plus staking rewards. Unlike traditional staking, you can use sUSDC in DeFi applications while still earning staking rewards.",
+        "Liquid Deposit allows you to stake your USDC and receive a tokenized version (sUSDC) that represents your staked USDC plus Deposit rewards. Unlike traditional Deposit, you can use sUSDC in DeFi applications while still earning Deposit rewards.",
       icon: Info,
     },
     {
-      question: "How do I receive my staking rewards?",
+      question: "How do I receive my Deposit rewards?",
       answer:
-        "Your sUSDC balance automatically increases daily to reflect your staking rewards. The token is a rebase token, meaning the amount in your wallet grows over time as rewards are earned. You can also track your rewards through the dashboard.",
+        "Your sUSDC balance automatically increases daily to reflect your Deposit rewards. The token is a rebase token, meaning the amount in your wallet grows over time as rewards are earned. You can also track your rewards through the dashboard.",
       icon: TrendingUp,
     },
     {
@@ -286,7 +286,7 @@ export default function StakePage() {
       icon: Zap,
     },
     {
-      question: "What are the risks of staking?",
+      question: "What are the risks of Deposit?",
       answer:
         "The main risks include smart contract risk, slashing risk (validators can lose a portion of stake for misbehavior), and market risk (the value of USDC/sUSDC can fluctuate). Our protocol has been audited by multiple security firms, and we maintain insurance coverage to mitigate these risks.",
       icon: Shield,
@@ -294,11 +294,11 @@ export default function StakePage() {
     {
       question: "What is the reward fee?",
       answer:
-        "A 10% fee is applied to your staking rewards to cover protocol maintenance, development, and validator operations. This means if you earn 3.3% APR, the protocol takes 10% of that reward, and you receive the remaining 90%. The fee is automatically deducted from your rewards.",
+        "A 10% fee is applied to your Deposit rewards to cover protocol maintenance, development, and validator operations. This means if you earn 3.3% APR, the protocol takes 10% of that reward, and you receive the remaining 90%. The fee is automatically deducted from your rewards.",
       icon: Award,
     },
     {
-      question: "Is there a minimum staking amount?",
+      question: "Is there a minimum Deposit amount?",
       answer:
         "No, there is no minimum amount required to stake. You can stake any amount of USDC you wish, making it accessible for everyone regardless of their holdings.",
       icon: Info,
@@ -310,35 +310,37 @@ export default function StakePage() {
       {/* No USDC Popup */}
       {showNoUSDCPopup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-6 h-6 text-orange-400" />
+          <div className="bg-slate-900/95 border border-slate-700/50 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex flex-col items-center text-center">
+              {/* Icon */}
+              <div className="w-16 h-16 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center justify-center mb-4">
+                <AlertTriangle className="w-8 h-8 text-orange-400" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white text-lg mb-2">
-                  No USDC Available
-                </h3>
-                <p className="text-slate-300 text-sm leading-relaxed mb-4">
-                  You need USDC tokens to stake. You can get USDC from exchanges
-                  like Coinbase, Binance, or swap other tokens for USDC on
-                  decentralized exchanges.
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => setShowNoUSDCPopup(false)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Get USDC
+
+              {/* Title */}
+              <h3 className="font-bold text-white text-2xl mb-3">
+                No USDC Available
+              </h3>
+
+              {/* Description */}
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                You need USDC tokens to stake. Get test USDC from our faucet to
+                start staking and earning rewards.
+              </p>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <Link href="/faucet" className="flex-1">
+                  <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-cyan-600  text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl">
+                    Go to Faucet
                   </Button>
-                  <Button
-                    onClick={() => setShowNoUSDCPopup(false)}
-                    variant="outline"
-                    className="px-4 border-slate-600 text-slate-300 hover:bg-slate-800"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
+                </Link>
+                <Button
+                  onClick={() => setShowNoUSDCPopup(false)}
+                  variant="outline"
+                  className="flex-1 sm:flex-none h-12 px-6 border-slate-600 text-slate-300  rounded-xl transition-colors">
+                  Close
+                </Button>
               </div>
             </div>
           </div>
@@ -410,8 +412,7 @@ export default function StakePage() {
                     <button
                       onClick={handleMaxClick}
                       disabled={!isConnected || isSubmitting}
-                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       MAX
                     </button>
                   </div>
@@ -427,7 +428,7 @@ export default function StakePage() {
                       <div className="flex items-center gap-2">
                         <Wallet className="w-4 h-4 text-blue-400" />
                         <span className="text-xs text-slate-400 font-medium">
-                          Available to stake
+                          Available to Deposit
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-white">
@@ -440,7 +441,7 @@ export default function StakePage() {
                       <div className="flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-cyan-400" />
                         <span className="text-xs text-slate-400 font-medium">
-                          Staked amount
+                          Deposited amount
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-white">
@@ -455,8 +456,7 @@ export default function StakePage() {
                       </span>
                       <button
                         onClick={handleCopyAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
-                      >
+                        className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
                         <span>{formatAddress(address)}</span>
                         {copied ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
@@ -492,15 +492,13 @@ export default function StakePage() {
                         </span>
                         <Link
                           href="/pilot"
-                          className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors"
-                        >
+                          className="text-xs text-cyan-300 hover:text-cyan-200 transition-colors">
                           Manage pilots
                         </Link>
                       </div>
                       <button
                         onClick={handleCopyPilotAddress}
-                        className="flex items-center gap-2 text-sm font-mono text-white/80 hover:text-cyan-300 transition-colors group"
-                      >
+                        className="flex items-center gap-2 text-sm font-mono text-white/80 hover:text-cyan-300 transition-colors group">
                         <span>
                           {formatAddress(selectedPilotInfo?.address ?? "")}
                         </span>
@@ -530,7 +528,7 @@ export default function StakePage() {
                       className="flex-shrink-0 rounded-full"
                     />
                     <div className="text-3xl font-semibold text-white truncate">
-                      {formatNumber(usdcAmount || "0")} sUSDC
+                      {usdcAmount || "0"} sUSDC
                     </div>
                   </div>
                 </div>
@@ -552,16 +550,14 @@ export default function StakePage() {
                     isStakeDisabled()
                       ? "bg-slate-700 text-slate-400 border border-slate-600"
                       : "w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-lg rounded-xl transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                  }`}
-                >
+                  }`}>
                   {getStakeButtonText()}
                 </Button>
               ) : (
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               )}
@@ -638,14 +634,13 @@ export default function StakePage() {
                   <p className="text-slate-300 text-sm leading-relaxed mb-3">
                     When you stake USDC, you receive sUSDC tokens that represent
                     your staked USDC plus all accrued rewards. Your sUSDC
-                    balance automatically increases daily as you earn staking
+                    balance automatically increases daily as you earn Deposit
                     rewards.
                   </p>
                   <a
                     href="#"
-                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
-                  >
-                    Learn more about liquid staking
+                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+                    Learn more about liquid Deposit
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
@@ -667,14 +662,12 @@ export default function StakePage() {
                   return (
                     <div
                       key={index}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
-                    >
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
                       <button
                         onClick={() =>
                           setExpandedFaq(isExpanded ? null : index)
                         }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors"
-                      >
+                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
                         <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Icon className="w-4 h-4 text-blue-400" />
                         </div>

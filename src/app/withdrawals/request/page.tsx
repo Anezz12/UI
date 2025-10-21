@@ -1,6 +1,9 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import {
   Info,
   Clock,
@@ -14,6 +17,10 @@ import {
   Settings,
   CheckCircle2,
   Clock10Icon,
+  Wallet,
+  RefreshCw,
+  AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,75 +31,137 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount } from "wagmi";
 
-export default function LidoWithdrawals() {
-  const [amount, setAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("superCluster");
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-  const [copied, setCopied] = useState(false);
+import { NETWORK_INFO } from "@/contracts/addresses";
+import { useWithdrawRequests } from "@/hooks/withdrawRequest";
+import { useWithdrawActions } from "@/hooks/ActionWithdraw";
+import { useWithdrawalBalances } from "@/hooks/useTokenBalance";
+
+function formatCountdown(seconds: number): string {
+  if (seconds <= 0) return "Ready to be claimed";
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (days > 0) return `${days}h ${hours}j`;
+  if (hours > 0) return `${hours}j ${minutes}m`;
+  return `${minutes}m`;
+}
+
+export default function WithdrawalsPage() {
   const router = useRouter();
   const pathname = usePathname();
+
+  const [amount, setAmount] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState<"superCluster" | "dex">(
+    "superCluster"
+  );
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeTab = pathname === "/withdrawals/claim" ? "claim" : "request";
 
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
 
-  // TODO: Get stETH balance from contract
-  const stETHBalance = "0.0";
+  // custom hooks
+  const {
+    usdcFormatted,
+    sTokenFormatted,
+    refetchAll: refetchBalances,
+  } = useWithdrawalBalances();
 
-  // TODO: Get pending withdrawal requests count from contract
-  const pendingRequests = 2;
-  const readyToClaim = 1; // Ready to claim requests
+  const {
+    isLoading: isLoadingRequests,
+    fetchRequests,
+    readyToClaimCount,
+    pendingRequestsCount,
+    claimedCount,
+    totalClaimableAmount,
+    totalPendingAmount,
+    displayRequests,
+  } = useWithdrawRequests();
 
-  // Withdrawal mode (Turbo or Bunker)
-  const withdrawalMode = "Turbo";
+  const {
+    requestWithdraw,
+    isSubmitting,
+    requestError,
+    requestTxHash,
+    latestRequestId,
 
-  const activeTab = pathname === "/withdrawals/claim" ? "claim" : "request";
+    claimWithdraw,
+    claimingId,
+    claimError,
+    sTokenBalance: stakedBalanceFormatted,
+  } = useWithdrawActions();
 
-  const handleTabChange = (tab: string) => {
-    if (tab === "request") {
-      router.push("/withdrawals/request");
-    } else {
-      router.push("/withdrawals/claim");
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "claim" && address) {
+      fetchRequests();
     }
+  }, [activeTab, address, fetchRequests]);
+
+  const handleTabChange = (tab: "request" | "claim") => {
+    router.push(`/withdrawals/${tab}`);
   };
 
   const handleMaxClick = () => {
-    if (stETHBalance) {
-      setAmount(stETHBalance);
-    }
+    setAmount(stakedBalanceFormatted);
   };
 
   const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    if (!address) return;
+    navigator.clipboard.writeText(address);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleConnect = async () => {
     try {
       await open();
     } catch (error) {
-      console.error("Wallet connection error:", error);
+      console.error("Connection error:", error);
     }
   };
 
   const handleWithdraw = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
+    if (!isConnected) {
+      await handleConnect();
       return;
     }
+
+    if (selectedMethod !== "superCluster") {
+      return;
+    }
+
     try {
-      console.log("Withdrawing", amount, "stETH via", selectedMethod);
+      await requestWithdraw(amount);
+      setAmount("");
+      await Promise.all([fetchRequests(), refetchBalances()]);
     } catch (error) {
       console.error("Withdrawal error:", error);
     }
   };
+  const handleClaim = async (id: bigint) => {
+    try {
+      await claimWithdraw(id);
+      await Promise.all([fetchRequests(), refetchBalances()]);
+    } catch (error) {
+      console.error("Claim error:", error);
+    }
+  };
+
+  const requestExplorerUrl =
+    requestTxHash && NETWORK_INFO.explorer
+      ? `${NETWORK_INFO.explorer}/tx/${requestTxHash}`
+      : null;
 
   const faqItems = [
     {
@@ -124,17 +193,10 @@ export default function LidoWithdrawals() {
   ];
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white pb-24">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Hero Section */}
+        {/* Hero */}
         <div className="text-center mb-12 relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full mb-6 backdrop-blur-sm">
-            <ArrowDownLeft className="w-4 h-4 text-blue-400" />
-            <span className="text-sm text-blue-400 font-medium">
-              Withdrawal System
-            </span>
-          </div>
-
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
               Request Withdrawals
@@ -142,14 +204,15 @@ export default function LidoWithdrawals() {
           </h1>
 
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Request sUSDC/wsUSDC withdrawal and claim your USDC
+            Submit your sUSDC/wsUSDC withdrawal request and claim your USDC
+            through the superCluster queue.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Withdrawal Panel */}
+          {/* Main Panel */}
           <div className="lg:col-span-2">
-            {/* Tab Selector */}
+            {/* Tab selector */}
             <div className="relative mb-6">
               <div className="flex gap-2 p-1.5 bg-slate-900/50 border border-slate-800 rounded-2xl backdrop-blur-sm">
                 <button
@@ -160,7 +223,7 @@ export default function LidoWithdrawals() {
                       : "text-slate-400 hover:text-white"
                   }`}>
                   {activeTab === "request" && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl" />
                   )}
                   <span className="relative z-10">Request</span>
                 </button>
@@ -172,57 +235,61 @@ export default function LidoWithdrawals() {
                       : "text-slate-400 hover:text-white"
                   }`}>
                   {activeTab === "claim" && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl" />
                   )}
-                  <span className="relative z-10">Claim</span>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    Claim
+                  </span>
                 </button>
               </div>
             </div>
 
             {activeTab === "request" ? (
               <>
-                {/* Withdrawal Card */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm mb-6">
-                  {/* Input Section */}
+                  {/* amount */}
                   <div className="mb-6">
                     <label className="text-sm text-slate-400 mb-2 block">
-                      Amount to withdraw
+                      Amount to be withdrawn
                     </label>
                     <div className="relative">
                       <div className="flex items-center gap-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 hover:border-blue-500/50 transition-colors">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center font-bold text-lg">
-                            s
-                          </div>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Image
+                            src="/susdc.png"
+                            alt="sUSDC"
+                            width={48}
+                            height={48}
+                            className="flex-shrink-0 rounded-full"
+                          />
                           <Input
                             type="number"
                             placeholder="0.00"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            disabled={!isConnected}
-                            className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600"
+                            disabled={!isConnected || isSubmitting}
+                            className="bg-transparent border-none text-3xl font-semibold focus-visible:ring-0 p-0 h-auto text-white placeholder:text-slate-600 min-w-0 disabled:opacity-60"
                           />
                         </div>
                         <button
                           onClick={handleMaxClick}
-                          disabled={!isConnected}
-                          className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                          disabled={!isConnected || isSubmitting}
+                          className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
                           MAX
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Method Selection */}
+                  {/* method */}
                   <div className="mb-6">
                     <label className="text-sm text-slate-400 mb-3 block">
                       Withdrawal method
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* superCluster Option */}
                       <button
                         onClick={() => setSelectedMethod("superCluster")}
-                        disabled={!isConnected}
+                        disabled={!isConnected || isSubmitting}
                         className={`p-5 rounded-2xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                           selectedMethod === "superCluster"
                             ? "border-blue-500 bg-blue-900/20"
@@ -242,7 +309,7 @@ export default function LidoWithdrawals() {
                                 : "border-slate-500"
                             }`}>
                             {selectedMethod === "superCluster" && (
-                              <div className="w-2.5 h-2.5 bg-blue-400 rounded-full"></div>
+                              <div className="w-2.5 h-2.5 bg-blue-400 rounded-full" />
                             )}
                           </div>
                         </div>
@@ -254,89 +321,60 @@ export default function LidoWithdrawals() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-400">Wait time:</span>
+                            <span className="text-slate-400">
+                              Estimated duration:
+                            </span>
                             <span className="text-white font-medium">
-                              ~ 10 days
+                              3–10 days
                             </span>
                           </div>
                         </div>
                       </button>
 
-                      {/* DEX Option */}
                       <button
                         onClick={() => setSelectedMethod("dex")}
-                        disabled={!isConnected}
-                        className={`p-5 rounded-2xl border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                          selectedMethod === "dex"
-                            ? "border-cyan-500 bg-cyan-900/20"
-                            : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
-                        }`}>
+                        disabled
+                        className="p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/30 opacity-50 cursor-not-allowed">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Zap className="w-5 h-5 text-cyan-400" />
                             <span className="font-semibold text-white">
-                              DEX Swap
+                              DEX Instant (Coming Soon)
                             </span>
                           </div>
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              selectedMethod === "dex"
-                                ? "border-cyan-400"
-                                : "border-slate-500"
-                            }`}>
-                            {selectedMethod === "dex" && (
-                              <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full"></div>
-                            )}
-                          </div>
+                          <div className="w-5 h-5 rounded-full border-2 border-slate-500" />
                         </div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Rate:</span>
-                            <span className="text-white font-medium">
-                              1 : 0.9994
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Wait time:</span>
-                            <span className="text-white font-medium">
-                              ~ 1-5 min
-                            </span>
-                          </div>
-                        </div>
+                        <p className="text-sm text-slate-400">
+                          Instant swaps via DEX with third-party liquidity. This
+                          feature is not yet available.
+                        </p>
                       </button>
                     </div>
                   </div>
 
-                  {/* Wallet Info - Only show when connected */}
                   {isConnected && address && (
                     <div className="mb-6 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 rounded-2xl">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* stETH Balance */}
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
-                              <span className="text-[8px] font-bold text-white">
-                                s
-                              </span>
-                            </div>
+                            <Wallet className="w-4 h-4 text-blue-400" />
                             <span className="text-xs text-slate-400 font-medium">
                               sUSDC balance
                             </span>
                           </div>
                           <div className="text-2xl font-bold text-white">
-                            {stETHBalance} sUSDC
+                            {stakedBalanceFormatted} sUSDC
                           </div>
                         </div>
 
-                        {/* Wallet Address */}
                         <div className="space-y-1">
                           <span className="text-xs text-slate-400 font-medium block">
-                            Wallet Address
+                            Wallet address
                           </span>
                           <button
                             onClick={handleCopyAddress}
                             className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
-                            <span>{formatAddress(address)}</span>
+                            <span>{`${address.slice(0, 6)}...${address.slice(-4)}`}</span>
                             {copied ? (
                               <Check className="w-3.5 h-3.5 text-green-400" />
                             ) : (
@@ -345,7 +383,6 @@ export default function LidoWithdrawals() {
                           </button>
                         </div>
 
-                        {/* My Requests */}
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4 text-blue-400" />
@@ -355,13 +392,14 @@ export default function LidoWithdrawals() {
                           </div>
                           <TooltipProvider>
                             <div className="flex items-center gap-3">
-                              {/* Ready to Claim */}
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <div className="flex items-center gap-2 cursor-help">
                                     <CheckCircle2 className="w-5 h-5 text-green-400" />
                                     <span className="text-2xl font-bold text-white">
-                                      {readyToClaim.toString().padStart(2, "0")}
+                                      {readyToClaimCount
+                                        .toString()
+                                        .padStart(2, "0")}
                                     </span>
                                   </div>
                                 </TooltipTrigger>
@@ -370,21 +408,19 @@ export default function LidoWithdrawals() {
                                     Ready to claim
                                   </p>
                                   <p className="text-xs text-slate-400">
-                                    Click to view claimable requests
+                                    Complete the claim in the Claim tab
                                   </p>
                                 </TooltipContent>
                               </Tooltip>
 
-                              {/* Divider */}
-                              <div className="h-8 w-px bg-slate-600"></div>
+                              <div className="h-8 w-px bg-slate-600" />
 
-                              {/* Pending */}
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <div className="flex items-center gap-2 cursor-help">
                                     <Clock10Icon className="w-5 h-5 text-amber-400" />
                                     <span className="text-2xl font-bold text-white">
-                                      {pendingRequests
+                                      {pendingRequestsCount
                                         .toString()
                                         .padStart(2, "0")}
                                     </span>
@@ -392,10 +428,10 @@ export default function LidoWithdrawals() {
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-slate-800 border-slate-700">
                                   <p className="text-sm text-white font-medium">
-                                    Pending requests
+                                    Waiting
                                   </p>
                                   <p className="text-xs text-slate-400">
-                                    Waiting in withdrawal queue
+                                    In the operator queue
                                   </p>
                                 </TooltipContent>
                               </Tooltip>
@@ -403,60 +439,97 @@ export default function LidoWithdrawals() {
                           </TooltipProvider>
                         </div>
 
-                        {/* Withdrawals Mode */}
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <Settings className="w-4 h-4 text-cyan-400" />
                             <span className="text-xs text-slate-400 font-medium">
-                              Withdrawals mode
+                              Withdrawal mode
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl font-bold text-cyan-400">
-                              {withdrawalMode}
+                              Queue
                             </span>
-                            {withdrawalMode === "Turbo" && (
-                              <div className="px-2 py-0.5 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs font-semibold text-cyan-400">
-                                FAST
-                              </div>
-                            )}
+                            <div className="px-2 py-0.5 bg-cyan-500/20 border border-cyan-500/30 rounded text-xs font-semibold text-cyan-400">
+                              STANDARD
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {/* You will receive */}
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <label className="text-sm text-slate-400 mb-2 block">
                       You will receive
                     </label>
                     <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center font-bold text-xl">
-                          Ξ
-                        </div>
-                        <div className="text-3xl font-semibold text-white">
-                          {selectedMethod === "superCluster"
-                            ? amount || "0.00"
-                            : amount
-                              ? (parseFloat(amount) * 0.9994).toFixed(4)
-                              : "0.00"}{" "}
-                          USDC
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Image
+                          src="/usdc.png"
+                          alt="USDC"
+                          width={48}
+                          height={48}
+                          className="flex-shrink-0"
+                        />
+                        <div className="text-3xl font-semibold text-white truncate">
+                          {amount || "0.00"} USDC
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Connect/Withdraw Button */}
+                  {requestError && (
+                    <div className="mb-4 flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                      <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>{requestError}</span>
+                    </div>
+                  )}
+
+                  {latestRequestId && (
+                    <div className="mb-4 flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                      <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p>
+                          Withdrawal request successfully created. Request ID:{" "}
+                          <span className="font-semibold">
+                            #{latestRequestId}
+                          </span>
+                        </p>
+                        <p>
+                          Monitor the status in the tab{" "}
+                          <button
+                            className="underline font-medium"
+                            onClick={() => handleTabChange("claim")}>
+                            Claim
+                          </button>
+                          .
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {requestTxHash && requestExplorerUrl && (
+                    <div className="mb-4 flex items-center gap-2 text-xs text-slate-400">
+                      <ExternalLink className="w-4 h-4" />
+                      <Link
+                        href={requestExplorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-slate-200">
+                        View transactions in the explorer
+                      </Link>
+                    </div>
+                  )}
+
                   {isConnected ? (
                     <Button
                       onClick={handleWithdraw}
-                      disabled={!amount || parseFloat(amount) <= 0}
+                      disabled={
+                        isSubmitting || !amount || Number(amount.trim()) <= 0
+                      }
                       className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
-                      {selectedMethod === "superCluster"
-                        ? "Request Withdrawal"
-                        : "Swap on DEX"}
+                      {isSubmitting ? "Processing..." : "Request Withdrawal"}
                     </Button>
                   ) : (
                     <Button
@@ -467,28 +540,38 @@ export default function LidoWithdrawals() {
                     </Button>
                   )}
 
-                  {/* Transaction Info */}
-                  <div className="mt-6 space-y-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Unlock Cost</span>
-                      <span className="text-green-400 font-medium">FREE</span>
+                  <div className="mt-6 space-y-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Withdrawal mode</span>
+                      <span className="text-green-400 font-medium">Free</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Network Fee</span>
-                      <span className="text-white font-medium">$2.09</span>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Network fee</span>
+                      <span className="text-white font-medium">~$0.20</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Exchange Rate</span>
-                      <span className="text-white font-medium">
-                        {selectedMethod === "superCluster"
-                          ? "1 sUSDC = 1 USDC"
-                          : "1 sUSDC = 0.9994 USDC"}
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        Time estimate
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-slate-800 border-slate-700">
+                              <p className="text-xs text-slate-200">
+                                Times may vary depending on queue conditions and
+                                operator actions.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </span>
+                      <span className="text-white font-medium">3–10 days</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Info Banner */}
+                {/* Info card */}
                 <div className="p-5 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-2xl">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -496,36 +579,258 @@ export default function LidoWithdrawals() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-white mb-1">
-                        Choose Your Method
+                        How does the withdrawal process work?
                       </h3>
                       <p className="text-sm text-slate-300 leading-relaxed">
-                        {selectedMethod === "superCluster"
-                          ? "superCluster queue provides 1:1 rate but requires ~10 days waiting time. Perfect for larger amounts without slippage."
-                          : "DEX swap is instant (1-5 minutes) but may have slight slippage. Best for urgent withdrawals and smaller amounts."}
+                        After the request is made, the operator will withdraw
+                        liquidity from the pilot and fund the Withdraw Manager
+                        contract. When the status changes to ready, you can make
+                        a claim to receive USDC.
                       </p>
                     </div>
                   </div>
                 </div>
               </>
+            ) : isConnected ? (
+              <>
+                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 backdrop-blur-sm mb-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-white">
+                        Your withdrawal request
+                      </h2>
+                      <p className="text-sm text-slate-400">
+                        Claim USDC when the request has been finalized by the
+                        operator.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="rounded-xl bg-slate-800/70 border border-slate-700 px-4 py-2 text-sm text-slate-300">
+                        USDC Balance: {usdcFormatted}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={fetchRequests}
+                        className="border border-slate-700 hover:bg-slate-800">
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {claimError && (
+                    <div className="mb-4 flex items-start gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                      <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>{claimError}</span>
+                    </div>
+                  )}
+
+                  <div className="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border border-blue-500/30 rounded-2xl p-6 mb-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Info className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-white mb-2">
+                          Withdrawal summary
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-slate-400 block">
+                              Total ready to claim
+                            </span>
+                            <span className="text-white font-semibold text-lg">
+                              {totalClaimableAmount} USDC
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block">
+                              Total waiting
+                            </span>
+                            <span className="text-white font-semibold text-lg">
+                              {totalPendingAmount} sUSDC
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block">
+                              Ready-to-claim requests
+                            </span>
+                            <span className="text-white font-semibold text-lg">
+                              {readyToClaimCount.toString().padStart(2, "0")}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block">
+                              Completed requests
+                            </span>
+                            <span className="text-white font-semibold text-lg">
+                              {claimedCount.toString().padStart(2, "0")}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isLoadingRequests ? (
+                    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-8 text-center text-slate-400">
+                      Loading withdrawal request...
+                    </div>
+                  ) : displayRequests.length === 0 ? (
+                    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-12 text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-slate-800 rounded-2xl flex items-center justify-center">
+                        <Clock className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2">
+                        No requests yet
+                      </h3>
+                      <p className="text-sm text-slate-400">
+                        Submit your withdrawal request in the Request tab first.
+                        Once the operator has processed it, you can make your
+                        claim here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {displayRequests.map((request) => (
+                        <div
+                          key={request.id.toString()}
+                          className="border border-slate-800 bg-slate-900/40 rounded-2xl p-6">
+                          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                            <div>
+                              <div className="flex items-center gap-2 text-xs text-slate-400 uppercase tracking-wide">
+                                <FileText className="w-4 h-4" />
+                                Request #{request.id.toString()}
+                              </div>
+                              <div className="mt-2 text-xl font-semibold text-white">
+                                {request.sAmountFormatted} sUSDC
+                                <span className="text-sm font-normal text-slate-400 ml-2">
+                                  ↔ {request.baseAmountFormatted} USDC
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              {request.status === "ready" && (
+                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/15 text-green-300 text-xs font-medium border border-green-500/30">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Ready to claim
+                                </span>
+                              )}
+                              {request.status === "pending" && (
+                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 text-amber-200 text-xs font-medium border border-amber-500/30">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  Waiting for the operator
+                                </span>
+                              )}
+                              {request.status === "finalizing" && (
+                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-200 text-xs font-medium border border-cyan-500/30">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  Processed
+                                </span>
+                              )}
+                              {request.status === "claimed" && (
+                                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-500/20 text-slate-200 text-xs font-medium border border-slate-500/30">
+                                  <Check className="w-3.5 h-3.5" />
+                                  Completed
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-slate-300 mb-4">
+                            <div>
+                              <span className="text-slate-400 block">
+                                Requested on
+                              </span>
+                              <span className="text-white font-medium">
+                                {new Date(
+                                  request.requestedAtMs
+                                ).toLocaleString()}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block">
+                                Ready estimate
+                              </span>
+                              <span className="text-white font-medium">
+                                {request.availableAtMs > 0
+                                  ? new Date(
+                                      request.availableAtMs
+                                    ).toLocaleString()
+                                  : "-"}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block">
+                                Remaining time
+                              </span>
+                              <span className="text-white font-medium">
+                                {request.status === "ready" ||
+                                request.status === "claimed"
+                                  ? "Ready to claim"
+                                  : formatCountdown(request.secondsToUnlock)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-slate-400 mb-2">
+                              <span>Progress</span>
+                              <span className="text-white font-medium">
+                                {request.progress}%
+                              </span>
+                            </div>
+                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
+                                style={{ width: `${request.progress}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="text-xs text-slate-400">
+                              ID request: {request.id.toString()}
+                            </div>
+                            {request.status === "ready" && (
+                              <Button
+                                onClick={() => handleClaim(request.id)}
+                                disabled={claimingId === request.id.toString()}
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-2 rounded-xl shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {claimingId === request.id.toString()
+                                  ? "Processing..."
+                                  : "Claim USDC"}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-12 backdrop-blur-sm text-center">
                 <div className="w-20 h-20 mx-auto mb-6 bg-blue-500/20 rounded-2xl flex items-center justify-center">
-                  <Info className="w-10 h-10 text-blue-400" />
+                  <Wallet className="w-10 h-10 text-blue-400" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">
-                  No Pending Requests
+                  Connect Your Wallet
                 </h3>
                 <p className="text-slate-400 mb-8">
-                  Connect your wallet to view withdrawal requests
+                  Connect your wallet to view and claim withdrawal requests
                 </p>
-                <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-blue-500/25">
-                  Connect Wallet
+                <Button
+                  onClick={handleConnect}
+                  disabled={isConnecting}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-blue-500/25">
+                  {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               </div>
             )}
           </div>
 
-          {/* FAQ Sidebar */}
+          {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <h3 className="text-2xl font-bold mb-6 text-white">
@@ -534,31 +839,24 @@ export default function LidoWithdrawals() {
               <div className="space-y-3">
                 {faqItems.map((item, index) => {
                   const Icon = item.icon;
-                  const isExpanded = expandedFaq === index;
-
+                  const isOpen = expandedFaq === index;
                   return (
                     <div
-                      key={index}
+                      key={item.question}
                       className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
                       <button
-                        onClick={() =>
-                          setExpandedFaq(isExpanded ? null : index)
-                        }
-                        className="w-full p-5 text-left flex items-start gap-3 hover:bg-slate-800/30 transition-colors">
-                        <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        onClick={() => setExpandedFaq(isOpen ? null : index)}
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
+                        <div className="flex items-center gap-3">
                           <Icon className="w-4 h-4 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-white text-sm leading-snug">
+                          <span className="text-sm font-medium text-white">
                             {item.question}
-                          </h4>
+                          </span>
                         </div>
                       </button>
-                      {isExpanded && (
-                        <div className="px-5 pb-5">
-                          <p className="text-sm text-slate-400 leading-relaxed pl-11">
-                            {item.answer}
-                          </p>
+                      {isOpen && (
+                        <div className="px-4 pb-4 text-sm text-slate-300">
+                          {item.answer}
                         </div>
                       )}
                     </div>

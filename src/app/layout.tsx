@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { cookieToInitialState } from "wagmi";
 import { config } from "@/lib/wagmi/config";
 import { Toaster } from "react-hot-toast";
+import Footer from "@/components/Home/Footer";
 
 const overpass = Overpass({
   variable: "--font-overpass",
@@ -30,14 +31,14 @@ export default async function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body
-        className={`${overpass.variable} antialiased bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 bg-fixed min-h-screen`}
-      >
+        className={`${overpass.variable} antialiased bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 bg-fixed min-h-screen`}>
         <WagmiProviderComp initialState={initialState}>
           <Toaster position="bottom-left" />
           <Navbar />
           <main className="max-w-7xl w-full mx-auto mt-32 px-4">
             {children}
           </main>
+          <Footer />
         </WagmiProviderComp>
       </body>
     </html>
