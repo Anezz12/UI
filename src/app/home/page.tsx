@@ -85,20 +85,18 @@ export default function Home() {
               composability across DeFi ecosystems
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-16">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-12 lg:mb-16">
               <Link
                 href="/deposit"
-                className="w-full sm:w-auto flex items-center bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              >
+                className="w-full sm:w-auto flex items-center justify-center bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3.5 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                 Deposit Now
               </Link>
               <Link
                 href={"https://super-cluster-2.gitbook.io/super-cluster-docs"}
-              >
+                className="w-full sm:w-auto">
                 <Button
                   variant="outline"
-                  className="h-16 px-10 bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:text-blue-500 text-white font-medium text-lg rounded-xl backdrop-blur-sm transition-all duration-300"
-                >
+                  className="w-full h-14 sm:h-16 px-6 sm:px-10 bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:text-blue-500 text-white font-medium text-base sm:text-lg rounded-xl backdrop-blur-sm transition-all duration-300">
                   Read Docs
                 </Button>
               </Link>
@@ -118,8 +116,7 @@ export default function Home() {
               style={{
                 opacity: Math.max(0, 1 - scrollY / 10000),
                 transform: `translateY(${scrollY * 0.01}px)`,
-              }}
-            >
+              }}>
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl opacity-0 transition-opacity duration-300" />
               <div className="relative bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-xl">
                 <div className="text-sm text-slate-400 mb-2">{stat.label}</div>
@@ -156,15 +153,13 @@ export default function Home() {
                 className="group relative"
                 style={{
                   animation: `fadeInUp 0.6s ease-out ${index * 0.2}s both`,
-                }}
-              >
+                }}>
                 <div
                   className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-xl opacity-0 transition-all duration-500`}
                 />
                 <div className="relative bg-slate-900/50 border border-slate-800  rounded-xl p-8 backdrop-blur-xl hover:border-white/20 transition-all duration-300 h-full">
                   <div
-                    className={`w-16 h-16 flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300`}
-                  >
+                    className={`w-16 h-16 flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4 text-white">
