@@ -521,7 +521,7 @@ export default function WithdrawalsPage() {
                           className="flex-shrink-0"
                         />
                         <div className="text-3xl font-semibold text-white truncate">
-                          {amount || "0.00"} USDC
+                          {amount || "0.0000"} USDC
                         </div>
                       </div>
                     </div>
