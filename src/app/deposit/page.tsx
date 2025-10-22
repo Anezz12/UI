@@ -514,7 +514,7 @@ export default function StakePage() {
                       className="flex-shrink-0 rounded-full"
                     />
                     <div className="text-3xl font-semibold text-white truncate">
-                      {usdcAmount || "0"} sUSDC
+                      {usdcAmount || "0.0000"} sUSDC
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   ArrowRightLeft,
@@ -15,12 +15,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount } from "wagmi";
-import {
-  getSimplifiedError,
-  isUserRejection,
-} from "@/utility/getSimplifiedError";
+import { getSimplifiedError } from "@/utility/getSimplifiedError";
 import { useSTokenBalance, useWsTokenBalance } from "@/hooks/useTokenBalance";
 import { useWrapping } from "@/hooks/useWrapping";
+
 import toast from "react-hot-toast";
 import Image from "next/image";
 
@@ -34,7 +32,6 @@ export default function SuperClusterWrapUnwrap() {
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
 
-  // Get sUSDC and wsUSDC balances
   const { formatted: sUSDCBalance, refetch: refetchSToken } =
     useSTokenBalance();
   const {
