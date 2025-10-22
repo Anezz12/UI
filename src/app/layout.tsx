@@ -6,6 +6,7 @@ import WagmiProviderComp from "@/lib/wagmi/wagmi-proved";
 import { headers } from "next/headers";
 import { cookieToInitialState } from "wagmi";
 import { config } from "@/lib/wagmi/config";
+import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "react-hot-toast";
 import Footer from "@/components/Home/Footer";
 
@@ -44,8 +45,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/logo-sc.png" />
       </head>
       <body
-        className={`${overpass.variable} antialiased bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 bg-fixed min-h-screen`}
-      >
+        className={`${overpass.variable} antialiased bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 bg-fixed min-h-screen`}>
         <WagmiProviderComp initialState={initialState}>
           <Toaster position="bottom-left" />
           <Navbar />
@@ -54,6 +54,7 @@ export default async function RootLayout({
           </main>
           <Footer />
         </WagmiProviderComp>
+        <Analytics />
       </body>
     </html>
   );
