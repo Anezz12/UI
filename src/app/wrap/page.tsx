@@ -14,13 +14,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount } from "wagmi";
+import {
+  getSimplifiedError,
+  isUserRejection,
+} from "@/utility/getSimplifiedError";
 import { useSTokenBalance, useWsTokenBalance } from "@/hooks/useTokenBalance";
 import { useWrapping } from "@/hooks/useWrapping";
 import toast from "react-hot-toast";
 import Image from "next/image";
 
-export default function LidoWrapUnwrap() {
+export default function SuperClusterWrapUnwrap() {
   const router = useRouter();
   const pathname = usePathname();
   const [amount, setAmount] = useState("");
@@ -29,11 +33,6 @@ export default function LidoWrapUnwrap() {
 
   const { open } = useWeb3Modal();
   const { address, isConnected, isConnecting } = useAccount();
-
-  // Get ETH balance
-  const { data: ethBalance } = useBalance({
-    address: address,
-  });
 
   // Get sUSDC and wsUSDC balances
   const { formatted: sUSDCBalance, refetch: refetchSToken } =
@@ -44,7 +43,6 @@ export default function LidoWrapUnwrap() {
     refetch: refetchWsToken,
   } = useWsTokenBalance();
 
-  // Wrapping functionality
   const { wrap, unwrap, isSubmitting, error, resetError } = useWrapping();
 
   const activeTab = pathname === "/wrap/unwrap" ? "unwrap" : "wrap";
@@ -85,71 +83,78 @@ export default function LidoWrapUnwrap() {
     }
   };
 
+  const getButtonState = () => {
+    if (!isConnected) {
+      return { disabled: false, text: "Connect Wallet" };
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      return {
+        disabled: true,
+        text: activeTab === "wrap" ? "Enter Amount" : "Enter Amount",
+      };
+    }
+
+    const inputAmount = parseFloat(amount);
+    const maxBalance =
+      activeTab === "wrap"
+        ? parseFloat(sUSDCBalance?.replace(/,/g, "") || "0")
+        : parseFloat(wsUSDCBalance?.replace(/,/g, "") || "0");
+
+    if (inputAmount > maxBalance) {
+      return {
+        disabled: true,
+        text: "Insufficient Balance",
+      };
+    }
+
+    if (isSubmitting) {
+      return {
+        disabled: true,
+        text: activeTab === "wrap" ? "Wrapping..." : "Unwrapping...",
+      };
+    }
+
+    return {
+      disabled: false,
+      text: activeTab === "wrap" ? "Wrap sUSDC" : "Unwrap wsUSDC",
+    };
+  };
+
+  const buttonState = getButtonState();
+
   const handleWrap = async () => {
     if (!amount || parseFloat(amount) <= 0) {
+      toast.error("Please enter a valid amount.");
       return;
     }
 
-    const toastId = toast.loading("Waiting for wallet confirmation...");
+    const actionText = activeTab === "wrap" ? "Wrapping" : "Unwrapping";
+    const toastId = toast.loading(`Waiting for wallet confirmation...`);
+
     try {
-      const success =
-        activeTab === "wrap" ? await wrap(amount) : await unwrap(amount);
-
-      if (success) {
-        const actionText = activeTab === "wrap" ? "Wrap" : "Unwrap";
-        toast.success(`${actionText} successful! Refreshing balance...`, {
-          id: toastId,
-        });
-        setAmount("");
-        setTimeout(() => {
-          refetchSToken();
-          refetchWsToken();
-        }, 2000);
+      if (activeTab === "wrap") {
+        await wrap(amount);
       } else {
-        // User rejected or transaction failed
-        toast.dismiss(toastId);
+        await unwrap(amount);
       }
-    } catch (error: unknown) {
-      // Check if error is user rejection
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === "object" && error !== null && "message" in error
-            ? String((error as { message: unknown }).message)
-            : typeof error === "string"
-              ? error
-              : "";
-      const isUserRejection =
-        errorMessage.includes("User denied") ||
-        errorMessage.includes("User rejected") ||
-        errorMessage.includes("user rejected");
 
-      if (!isUserRejection) {
-        const actionText = activeTab === "wrap" ? "wrap" : "unwrap";
-        toast.error(`Failed to ${actionText}, please try again later.`, {
-          id: toastId,
-        });
-      } else {
-        toast.dismiss(toastId);
-      }
-      console.error("Wrap/Unwrap error:", error);
+      const successActionText = activeTab === "wrap" ? "Wrap" : "Unwrap";
+      toast.success(`${successActionText} successful! Refreshing balance...`, {
+        id: toastId,
+      });
+
+      setAmount("");
+      setTimeout(() => {
+        refetchSToken();
+        refetchWsToken();
+      }, 2000);
+    } catch (err: unknown) {
+      const simplifiedError = getSimplifiedError(err);
+      toast.error(simplifiedError, { id: toastId });
+      console.error(`${actionText} failed:`, err);
     }
   };
-
-  useEffect(() => {
-    if (error) {
-      // Don't show toast for user rejection errors
-      const isUserRejection =
-        error.includes("User denied") ||
-        error.includes("User rejected") ||
-        error.includes("user rejected");
-
-      if (!isUserRejection) {
-        toast.error(error);
-      }
-    }
-  }, [error]);
-
   const faqItems = [
     {
       question:
@@ -457,7 +462,9 @@ export default function LidoWrapUnwrap() {
               {/* Error Message */}
               {error && (
                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
-                  <p className="text-red-400 text-sm">{error}</p>
+                  <p className="text-red-400 text-sm">
+                    {getSimplifiedError(error)}
+                  </p>
                 </div>
               )}
 
@@ -465,15 +472,9 @@ export default function LidoWrapUnwrap() {
               {isConnected ? (
                 <Button
                   onClick={handleWrap}
-                  disabled={!amount || parseFloat(amount) <= 0 || isSubmitting}
+                  disabled={buttonState.disabled}
                   className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
-                  {isSubmitting
-                    ? activeTab === "wrap"
-                      ? "Wrapping..."
-                      : "Unwrapping..."
-                    : activeTab === "wrap"
-                      ? "Wrap sUSDC"
-                      : "Unwrap wsUSDC"}
+                  {buttonState.text}
                 </Button>
               ) : (
                 <Button

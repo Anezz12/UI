@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import Image from "next/image";
 import {
   Info,
@@ -11,7 +11,6 @@ import {
   Zap,
   Shield,
   TrendingDown,
-  ArrowDownLeft,
   Copy,
   Check,
   FileText,
@@ -90,11 +89,9 @@ export default function WithdrawalsPage() {
     requestError,
     requestTxHash,
     latestRequestId,
-
     claimWithdraw,
     claimingId,
     claimError,
-    sTokenBalance: stakedBalanceFormatted,
   } = useWithdrawActions();
 
   useEffect(() => {
@@ -114,7 +111,7 @@ export default function WithdrawalsPage() {
   };
 
   const handleMaxClick = () => {
-    const numValue = parseFloat(stakedBalanceFormatted || "0");
+    const numValue = parseFloat(sTokenFormatted || "0");
     setAmount(numValue.toFixed(4));
   };
 
@@ -269,8 +266,7 @@ export default function WithdrawalsPage() {
                     activeTab === "request"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}
-                >
+                  }`}>
                   {activeTab === "request" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl" />
                   )}
@@ -282,8 +278,7 @@ export default function WithdrawalsPage() {
                     activeTab === "claim"
                       ? "text-white"
                       : "text-slate-400 hover:text-white"
-                  }`}
-                >
+                  }`}>
                   {activeTab === "claim" && (
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl" />
                   )}
@@ -324,8 +319,7 @@ export default function WithdrawalsPage() {
                         <button
                           onClick={handleMaxClick}
                           disabled={!isConnected || isSubmitting}
-                          className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-                        >
+                          className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-blue-400 font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
                           MAX
                         </button>
                       </div>
@@ -345,8 +339,7 @@ export default function WithdrawalsPage() {
                           selectedMethod === "superCluster"
                             ? "border-blue-500 bg-blue-900/20"
                             : "border-slate-700 bg-slate-800/30 hover:border-slate-600"
-                        }`}
-                      >
+                        }`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Clock className="w-5 h-5 text-blue-400" />
@@ -359,8 +352,7 @@ export default function WithdrawalsPage() {
                               selectedMethod === "superCluster"
                                 ? "border-blue-400"
                                 : "border-slate-500"
-                            }`}
-                          >
+                            }`}>
                             {selectedMethod === "superCluster" && (
                               <div className="w-2.5 h-2.5 bg-blue-400 rounded-full" />
                             )}
@@ -387,8 +379,7 @@ export default function WithdrawalsPage() {
                       <button
                         onClick={() => setSelectedMethod("dex")}
                         disabled
-                        className="p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/30 opacity-50 cursor-not-allowed"
-                      >
+                        className="p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/30 opacity-50 cursor-not-allowed">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Zap className="w-5 h-5 text-cyan-400" />
@@ -417,9 +408,7 @@ export default function WithdrawalsPage() {
                             </span>
                           </div>
                           <div className="text-2xl font-bold text-white">
-                            {parseFloat(stakedBalanceFormatted || "0").toFixed(
-                              4
-                            )}{" "}
+                            {sTokenFormatted}
                             sUSDC
                           </div>
                         </div>
@@ -430,8 +419,7 @@ export default function WithdrawalsPage() {
                           </span>
                           <button
                             onClick={handleCopyAddress}
-                            className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group"
-                          >
+                            className="flex items-center gap-2 text-sm font-mono text-white hover:text-blue-400 transition-colors group">
                             <span>{`${address.slice(0, 6)}...${address.slice(
                               -4
                             )}`}</span>
@@ -560,8 +548,7 @@ export default function WithdrawalsPage() {
                           Monitor the status in the tab{" "}
                           <button
                             className="underline font-medium"
-                            onClick={() => handleTabChange("claim")}
-                          >
+                            onClick={() => handleTabChange("claim")}>
                             Claim
                           </button>
                           .
@@ -577,8 +564,7 @@ export default function WithdrawalsPage() {
                         href={requestExplorerUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline text-slate-200"
-                      >
+                        className="underline text-slate-200">
                         View transactions in the explorer
                       </Link>
                     </div>
@@ -590,16 +576,14 @@ export default function WithdrawalsPage() {
                       disabled={
                         isSubmitting || !amount || Number(amount.trim()) <= 0
                       }
-                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                    >
+                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
                       {isSubmitting ? "Processing..." : "Request Withdrawal"}
                     </Button>
                   ) : (
                     <Button
                       onClick={handleConnect}
                       disabled={isConnecting}
-                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                      className="w-full h-14 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed">
                       {isConnecting ? "Connecting..." : "Connect Wallet"}
                     </Button>
                   )}
@@ -677,8 +661,7 @@ export default function WithdrawalsPage() {
                         variant="ghost"
                         size="icon"
                         onClick={fetchRequests}
-                        className="border border-slate-700 hover:bg-slate-800"
-                      >
+                        className="border border-slate-700 hover:bg-slate-800">
                         <RefreshCw className="w-4 h-4" />
                       </Button>
                     </div>
@@ -762,8 +745,7 @@ export default function WithdrawalsPage() {
                       {displayRequests.map((request) => (
                         <div
                           key={request.id.toString()}
-                          className="border border-slate-800 bg-slate-900/40 rounded-2xl p-6"
-                        >
+                          className="border border-slate-800 bg-slate-900/40 rounded-2xl p-6">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                             <div>
                               <div className="flex items-center gap-2 text-xs text-slate-400 uppercase tracking-wide">
@@ -871,8 +853,7 @@ export default function WithdrawalsPage() {
                               <Button
                                 onClick={() => handleClaim(request.id)}
                                 disabled={claimingId === request.id.toString()}
-                                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-2 rounded-xl shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
+                                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-2 rounded-xl shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
                                 {claimingId === request.id.toString()
                                   ? "Processing..."
                                   : "Claim USDC"}
@@ -899,8 +880,7 @@ export default function WithdrawalsPage() {
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-blue-500/25"
-                >
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-blue-500/25">
                   {isConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
               </div>
@@ -920,12 +900,10 @@ export default function WithdrawalsPage() {
                   return (
                     <div
                       key={item.question}
-                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors"
-                    >
+                      className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-sm hover:border-slate-700 transition-colors">
                       <button
                         onClick={() => setExpandedFaq(isOpen ? null : index)}
-                        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
-                      >
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left">
                         <div className="flex items-center gap-3">
                           <Icon className="w-4 h-4 text-blue-400" />
                           <span className="text-sm font-medium text-white">

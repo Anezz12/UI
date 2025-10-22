@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount } from "wagmi";
 import { useUSDCBalance, useSTokenBalance } from "@/hooks/useTokenBalance";
+import { getSimplifiedError } from "@/utility/getSimplifiedError";
 import { useStaking } from "@/hooks/useStaking";
 import { CONTRACTS } from "@/contracts/addresses";
 import toast from "react-hot-toast";
@@ -193,33 +194,25 @@ export default function StakePage() {
   const handleStake = async () => {
     const toastId = toast.loading("Waiting for wallet confirmation...");
     try {
-      const success = await stake(usdcAmount);
-      if (success) {
-        toast.success("Deposit successful! Refreshing balance...", {
-          id: toastId,
-        });
-        setUsdcAmount("");
-        setTimeout(() => {
-          refetchUSDC();
-          refetchSToken();
-        }, 2000);
-      } else {
-        toast.dismiss(toastId);
-      }
+      await stake(usdcAmount);
+      toast.success("Deposit successful! Refreshing balance...", {
+        id: toastId,
+      });
+      setUsdcAmount("");
+      setTimeout(() => {
+        refetchUSDC();
+        refetchSToken();
+      }, 2000);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : typeof err === "string" ? err : "";
-      const isUserRejection =
-        errorMessage.includes("User denied") ||
-        errorMessage.includes("User rejected") ||
-        errorMessage.includes("user rejected");
+      const errorMessage = getSimplifiedError(err);
+      const isUserRejection = errorMessage
+        .toLowerCase()
+        .includes("user rejected");
 
-      if (!isUserRejection) {
-        toast.error("Deposit failed, please try again later.", {
-          id: toastId,
-        });
-      } else {
+      if (isUserRejection) {
         toast.dismiss(toastId);
+      } else {
+        toast.error(errorMessage, { id: toastId });
       }
       console.error(err);
     }
@@ -258,20 +251,6 @@ export default function StakePage() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (error) {
-      // Don't show toast for user rejection errors
-      const isUserRejection =
-        error.includes("User denied") ||
-        error.includes("User rejected") ||
-        error.includes("user rejected");
-
-      if (!isUserRejection) {
-        toast.error(error);
-      }
-    }
-  }, [error]);
 
   const faqItems = [
     {
@@ -544,7 +523,9 @@ export default function StakePage() {
               {/* Error Message */}
               {error && (
                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
-                  <p className="text-red-400 text-sm">{error}</p>
+                  <p className="text-red-400 text-sm">
+                    {getSimplifiedError(error)}
+                  </p>
                 </div>
               )}
 
