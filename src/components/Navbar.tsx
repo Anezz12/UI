@@ -43,7 +43,12 @@ export default function NavbarWrapper() {
       active: pathname.startsWith("/docs"),
       dropdown: {
         label: "Docs",
-        items: [{ name: "Overview", href: "/docs/overview" }],
+        items: [
+          {
+            name: "Overview",
+            href: "https://super-cluster-2.gitbook.io/super-cluster-docs/",
+          },
+        ],
       },
     },
   ];

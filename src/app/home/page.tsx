@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SuperclusterAnimation from "@/components/SpaceGalaxy";
-
+import Link from "next/link";
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
@@ -86,18 +86,22 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-16">
-              <a
+              <Link
                 href="/deposit"
                 className="w-full sm:w-auto flex items-center bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Deposit Now
-              </a>
-              <Button
-                variant="outline"
-                className="h-16 px-10 bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:text-blue-500 text-white font-medium text-lg rounded-xl backdrop-blur-sm transition-all duration-300"
+              </Link>
+              <Link
+                href={"https://super-cluster-2.gitbook.io/super-cluster-docs"}
               >
-                Read Docs
-              </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 px-10 bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:text-blue-500 text-white font-medium text-lg rounded-xl backdrop-blur-sm transition-all duration-300"
+                >
+                  Read Docs
+                </Button>
+              </Link>
             </div>
           </div>
           <div className="flex justify-end items-end">
