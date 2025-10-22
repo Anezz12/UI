@@ -38,18 +38,15 @@ export function useStaking() {
 
   const stake = async (amount: string, pilotAddress?: Address) => {
     if (!address || !chainId) {
-      setError("Please connect your wallet");
-      return false;
+      throw new Error("Please connect your wallet");
     }
 
     if (!isBaseSepolia(chainId as SupportedChainId)) {
-      setError("Please switch to Base Sepolia network");
-      return false;
+      throw new Error("Please switch to Base Sepolia network");
     }
 
     if (!amount || Number(amount) <= 0) {
-      setError("Please enter a valid amount");
-      return false;
+      throw new Error("Please enter a valid amount");
     }
 
     try {
@@ -91,12 +88,11 @@ export function useStaking() {
 
       setTxHash(depositTx);
       setError(null);
-      return true;
     } catch (err: unknown) {
       console.error("Staking error:", err);
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
-      return false;
+      throw err;
     } finally {
       setIsSubmitting(false);
     }

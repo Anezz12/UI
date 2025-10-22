@@ -1,11 +1,46 @@
 import { useAccount, useBalance, useReadContract } from "wagmi";
-import { formatUnits } from "viem";
 import { useMemo } from "react";
 import { CONTRACTS, TOKEN_DECIMALS } from "@/contracts/addresses";
 import { STOKEN_ABI } from "@/contracts/abis/SToken";
 import { WSTOKEN_ABI } from "@/contracts/abis/WsToken";
 
 export function useUSDCBalance() {
+  const formatTokenBalanceFloor = (raw: bigint, decimals: number) => {
+    if (raw === BigInt(0)) return "0";
+
+    const base = BigInt(10) ** BigInt(decimals);
+    const integerPart = raw / base;
+    const remainder = raw % base;
+
+    let fractionDigits = 6;
+    if (integerPart > BigInt(0)) fractionDigits = 4;
+    else {
+      const twoDecimalBase = base / BigInt(10) ** BigInt(2);
+      const fourDecimalBase = base / BigInt(10) ** BigInt(4);
+      if (remainder >= twoDecimalBase) fractionDigits = 5;
+      else if (remainder >= fourDecimalBase) fractionDigits = 6;
+    }
+    let scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    if (
+      scaled === BigInt(0) &&
+      remainder > BigInt(0) &&
+      fractionDigits < Math.min(decimals, 6)
+    ) {
+      fractionDigits = Math.min(decimals, 6);
+      scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    }
+
+    const whole = Number(integerPart).toLocaleString("en-US");
+    const padded = scaled.toString().padStart(fractionDigits, "0");
+    let fraction = padded.replace(/0+$/, "");
+
+    if (fraction === "" && remainder > BigInt(0)) {
+      fraction = "0".repeat(fractionDigits);
+    }
+
+    return fraction ? `${whole}.${fraction}` : whole;
+  };
+
   const { address } = useAccount();
 
   const {
@@ -22,14 +57,8 @@ export function useUSDCBalance() {
   });
 
   const formatted = useMemo(() => {
-    if (!balance) return "0.00";
-
-    const numericValue = Number(balance.formatted);
-
-    return numericValue.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    });
+    if (!balance) return "0.0000";
+    return formatTokenBalanceFloor(balance.value, balance.decimals);
   }, [balance]);
 
   return {
@@ -42,6 +71,41 @@ export function useUSDCBalance() {
 }
 
 export function useSTokenBalance() {
+  const formatTokenBalanceFloor = (raw: bigint, decimals: number) => {
+    if (raw === BigInt(0)) return "0";
+
+    const base = BigInt(10) ** BigInt(decimals);
+    const integerPart = raw / base;
+    const remainder = raw % base;
+
+    let fractionDigits = 6;
+    if (integerPart > BigInt(0)) fractionDigits = 4;
+    else {
+      const twoDecimalBase = base / BigInt(10) ** BigInt(2);
+      const fourDecimalBase = base / BigInt(10) ** BigInt(4);
+      if (remainder >= twoDecimalBase) fractionDigits = 5;
+      else if (remainder >= fourDecimalBase) fractionDigits = 6;
+    }
+    let scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    if (
+      scaled === BigInt(0) &&
+      remainder > BigInt(0) &&
+      fractionDigits < Math.min(decimals, 6)
+    ) {
+      fractionDigits = Math.min(decimals, 6);
+      scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    }
+
+    const whole = Number(integerPart).toLocaleString("en-US");
+    const padded = scaled.toString().padStart(fractionDigits, "0");
+    let fraction = padded.replace(/0+$/, "");
+
+    if (fraction === "" && remainder > BigInt(0)) {
+      fraction = "0".repeat(fractionDigits);
+    }
+
+    return fraction ? `${whole}.${fraction}` : whole;
+  };
   const { address } = useAccount();
 
   // Get sToken address from SuperCluster
@@ -82,14 +146,8 @@ export function useSTokenBalance() {
   });
 
   const formatted = useMemo(() => {
-    if (!rawBalance || decimals == null) return "0.00";
-
-    const numericValue = Number(formatUnits(rawBalance, decimals));
-
-    return numericValue.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    });
+    if (!rawBalance || decimals == null) return "0.0000";
+    return formatTokenBalanceFloor(rawBalance, decimals);
   }, [rawBalance, decimals]);
 
   return {
@@ -102,6 +160,42 @@ export function useSTokenBalance() {
 }
 
 export function useWsTokenBalance() {
+  const formatTokenBalanceFloor = (raw: bigint, decimals: number) => {
+    if (raw === BigInt(0)) return "0";
+
+    const base = BigInt(10) ** BigInt(decimals);
+    const integerPart = raw / base;
+    const remainder = raw % base;
+
+    let fractionDigits = 6;
+    if (integerPart > BigInt(0)) fractionDigits = 4;
+    else {
+      const twoDecimalBase = base / BigInt(10) ** BigInt(2);
+      const fourDecimalBase = base / BigInt(10) ** BigInt(4);
+      if (remainder >= twoDecimalBase) fractionDigits = 5;
+      else if (remainder >= fourDecimalBase) fractionDigits = 6;
+    }
+    let scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    if (
+      scaled === BigInt(0) &&
+      remainder > BigInt(0) &&
+      fractionDigits < Math.min(decimals, 6)
+    ) {
+      fractionDigits = Math.min(decimals, 6);
+      scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    }
+
+    const whole = Number(integerPart).toLocaleString("en-US");
+    const padded = scaled.toString().padStart(fractionDigits, "0");
+    let fraction = padded.replace(/0+$/, "");
+
+    if (fraction === "" && remainder > BigInt(0)) {
+      fraction = "0".repeat(fractionDigits);
+    }
+
+    return fraction ? `${whole}.${fraction}` : whole;
+  };
+
   const { address } = useAccount();
 
   // Get decimals
@@ -134,25 +228,13 @@ export function useWsTokenBalance() {
   });
 
   const formatted = useMemo(() => {
-    if (!rawBalance || decimals == null) return "0.00";
-
-    const numericValue = Number(formatUnits(rawBalance, decimals));
-
-    return numericValue.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    });
+    if (!rawBalance || decimals == null) return "0.0000";
+    return formatTokenBalanceFloor(rawBalance, decimals);
   }, [rawBalance, decimals]);
 
   const formattedConversionRate = useMemo(() => {
     if (!conversionRate || decimals == null) return "1.0000";
-
-    const numericValue = Number(formatUnits(conversionRate, decimals));
-
-    return numericValue.toLocaleString("en-US", {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    });
+    return formatTokenBalanceFloor(conversionRate, decimals);
   }, [conversionRate, decimals]);
 
   return {
@@ -167,6 +249,42 @@ export function useWsTokenBalance() {
 
 // New hook for withdrawal balances
 export function useWithdrawalBalances() {
+  const formatTokenBalanceFloor = (raw: bigint, decimals: number) => {
+    if (raw === BigInt(0)) return "0";
+
+    const base = BigInt(10) ** BigInt(decimals);
+    const integerPart = raw / base;
+    const remainder = raw % base;
+
+    let fractionDigits = 6;
+    if (integerPart > BigInt(0)) fractionDigits = 4;
+    else {
+      const twoDecimalBase = base / BigInt(10) ** BigInt(2);
+      const fourDecimalBase = base / BigInt(10) ** BigInt(4);
+      if (remainder >= twoDecimalBase) fractionDigits = 5;
+      else if (remainder >= fourDecimalBase) fractionDigits = 6;
+    }
+    let scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    if (
+      scaled === BigInt(0) &&
+      remainder > BigInt(0) &&
+      fractionDigits < Math.min(decimals, 6)
+    ) {
+      fractionDigits = Math.min(decimals, 6);
+      scaled = (remainder * BigInt(10) ** BigInt(fractionDigits)) / base;
+    }
+
+    const whole = Number(integerPart).toLocaleString("en-US");
+    const padded = scaled.toString().padStart(fractionDigits, "0");
+    let fraction = padded.replace(/0+$/, "");
+
+    if (fraction === "" && remainder > BigInt(0)) {
+      fraction = "0".repeat(fractionDigits);
+    }
+
+    return fraction ? `${whole}.${fraction}` : whole;
+  };
+
   const { address } = useAccount();
 
   // USDC wallet balance
@@ -187,11 +305,8 @@ export function useWithdrawalBalances() {
   } = useSTokenBalance();
 
   const usdcFormatted = useMemo(() => {
-    if (!usdcBalance) return "0.00";
-    return Number(usdcBalance.formatted).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    if (!usdcBalance) return "0";
+    return formatTokenBalanceFloor(usdcBalance.value, usdcBalance.decimals);
   }, [usdcBalance]);
 
   const refetchAll = async () => {

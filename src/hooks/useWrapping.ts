@@ -34,18 +34,15 @@ export function useWrapping() {
 
   const wrap = async (amount: string) => {
     if (!address || !chainId) {
-      setError("Please connect your wallet");
-      return false;
+      throw new Error("Please connect your wallet");
     }
 
     if (!isBaseSepolia(chainId)) {
-      setError("Please switch to Base Sepolia network");
-      return false;
+      throw new Error("Please switch to Base Sepolia network");
     }
 
     if (!amount || Number(amount) <= 0) {
-      setError("Please enter a valid amount");
-      return false;
+      throw new Error("Please enter a valid amount");
     }
 
     try {
@@ -79,12 +76,11 @@ export function useWrapping() {
 
       setTxHash(wrapTx);
       setError(null);
-      return true;
     } catch (err: unknown) {
       console.error("Wrap error:", err);
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
-      return false;
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
@@ -92,18 +88,15 @@ export function useWrapping() {
 
   const unwrap = async (amount: string) => {
     if (!address || !chainId) {
-      setError("Please connect your wallet");
-      return false;
+      throw new Error("Please connect your wallet");
     }
 
     if (!isBaseSepolia(chainId)) {
-      setError("Please switch to Base Sepolia network");
-      return false;
+      throw new Error("Please switch to Base Sepolia network");
     }
 
     if (!amount || Number(amount) <= 0) {
-      setError("Please enter a valid amount");
-      return false;
+      throw new Error("Please enter a valid amount");
     }
 
     try {
@@ -126,12 +119,11 @@ export function useWrapping() {
 
       setTxHash(unwrapTx);
       setError(null);
-      return true;
     } catch (err: unknown) {
       console.error("Unwrap error:", err);
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
-      return false;
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
